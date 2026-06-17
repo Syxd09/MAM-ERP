@@ -140,7 +140,7 @@ function Dashboard() {
                 <YAxis tick={{ fontSize: 10, fill: "oklch(0.68 0.02 245)" }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                 <Tooltip
                   contentStyle={{ background: "oklch(0.22 0.028 250)", border: "1px solid oklch(0.30 0.025 250)", borderRadius: 6, fontSize: 12 }}
-                  formatter={(value: any, name: string) => [name === "revenue" ? inr(Number(value)) : value, name === "revenue" ? "Revenue" : "Quotes"]}
+                  formatter={(value: any) => [inr(Number(value)), "Revenue"]}
                 />
                 <Area type="monotone" dataKey="revenue" stroke={CHART_HEX[0]} fill="url(#rev)" strokeWidth={2} />
               </AreaChart>
