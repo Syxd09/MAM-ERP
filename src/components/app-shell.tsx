@@ -1,5 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LayoutDashboard, Users, UserPlus, FileText, Factory, Calculator, ClipboardList, LogOut, Settings, Bell, Activity } from "lucide-react";
@@ -8,6 +9,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import { cn } from "@/lib/utils";
 import { CommandPalette, CommandTrigger } from "@/components/command-palette";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { PageTransition } from "@/components/page-transition";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -66,23 +68,37 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {nav.map((item) => {
+          {nav.map((item, i) => {
             const active = pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
-              <Link
+              <motion.div
                 key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_2px_0_0_var(--color-primary)]"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
-                )}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.025, duration: 0.25, ease: "easeOut" }}
               >
-                <Icon className="size-4" />
-                {item.label}
-              </Link>
+                <Link
+                  to={item.to}
+                  preload="intent"
+                  className={cn(
+                    "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
+                    active
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground hover:translate-x-0.5"
+                  )}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="sidebar-active-pill"
+                      className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r bg-primary"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <Icon className={cn("size-4 transition-transform duration-200", active ? "text-primary" : "group-hover:scale-110")} />
+                  {item.label}
+                </Link>
+              </motion.div>
             );
           })}
         </nav>
@@ -131,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden"><PageTransition>{children}</PageTransition></main>
       </div>
     </div>
   );
