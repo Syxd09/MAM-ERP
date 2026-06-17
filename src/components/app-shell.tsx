@@ -1,12 +1,13 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, UserPlus, FileText, Factory, Calculator, ClipboardList, LogOut, Settings, Search, Bell } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, FileText, Factory, Calculator, ClipboardList, LogOut, Settings, Bell, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { CommandPalette, CommandTrigger } from "@/components/command-palette";
+import { NotificationsBell } from "@/components/notifications-bell";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -17,12 +18,14 @@ const nav = [
   { to: "/jobs", label: "Production", icon: Factory },
   { to: "/calculators", label: "Calculators", icon: Calculator },
   { to: "/reports", label: "Reports", icon: ClipboardList },
+  { to: "/activity", label: "Activity Log", icon: Activity },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["me"],
@@ -49,7 +52,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex w-full">
-      {/* Sidebar */}
+      <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} />
+
       <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border">
         <div className="h-16 flex items-center gap-3 px-4 border-b border-sidebar-border">
           <div className="size-9 rounded-lg gradient-industrial flex items-center justify-center">
@@ -84,18 +88,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="p-3 border-t border-sidebar-border text-[10px] text-muted-foreground uppercase tracking-widest">
-          v1.0 · Industrial ERP
+          v1.1 · Industrial ERP
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-border bg-card/50 backdrop-blur sticky top-0 z-30 flex items-center gap-3 px-4 md:px-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input placeholder="Search leads, customers, quotations…" className="pl-9 bg-background/60" />
-          </div>
+          <CommandTrigger onClick={() => setPaletteOpen(true)} />
           <div className="flex-1" />
+          <NotificationsBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 h-10">
@@ -116,7 +117,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </header>
 
-        {/* Mobile nav */}
         <div className="md:hidden overflow-x-auto border-b border-border bg-card/50">
           <div className="flex gap-1 p-2 min-w-max">
             {nav.map((item) => {
