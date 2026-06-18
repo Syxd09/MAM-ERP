@@ -13,8 +13,6 @@ import { PageTransition } from "@/components/page-transition";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/leads", label: "Leads / CRM", icon: UserPlus },
-  { to: "/follow-ups", label: "Follow-ups", icon: Bell },
   { to: "/customers", label: "Customers", icon: Users },
   { to: "/quotations", label: "Quotations", icon: FileText },
   { to: "/jobs", label: "Production", icon: Factory },
@@ -22,6 +20,8 @@ const nav = [
   { to: "/reports", label: "Reports", icon: ClipboardList },
   { to: "/activity", label: "Activity Log", icon: Activity },
 ] as const;
+// suppress unused icon warnings
+void UserPlus; void Bell;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
