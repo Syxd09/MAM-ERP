@@ -1,27 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  inr,
-  fmtDate,
-  LEAD_STATUS_LABELS,
-  STATUS_TONE,
-  JOB_STAGE_LABELS,
-  LEAD_SOURCE_LABELS,
-  LEAD_SOURCES,
-  LEAD_STATUSES,
-  JOB_STAGES,
-} from "@/lib/erp";
+import { inr, fmtDate, JOB_STAGE_LABELS, JOB_STAGES, type JobStage } from "@/lib/erp";
 import {
   Activity,
   TrendingUp,
-  Users,
   FileText,
   Factory,
   Clock,
   IndianRupee,
-  Target,
   AlertTriangle,
+  Calendar,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -44,126 +33,167 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-const CHART_HEX = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#a855f7"];
+const CHART_HEX = [
+  "#3b82f6",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#a855f7",
+  "#06b6d4",
+  "#ec4899",
+  "#14b8a6",
+  "#8b5cf6",
+];
+
+const STAGE_TONE: Record<JobStage, string> = {
+  design_received: "border-chart-5/40 bg-chart-5/5 text-chart-5",
+  programming: "border-chart-3/40 bg-chart-3/5 text-chart-3",
+  laser_cutting: "border-primary/40 bg-primary/5 text-primary",
+  bending: "border-warning/40 bg-warning/5 text-warning",
+  welding: "border-destructive/40 bg-destructive/5 text-destructive",
+  powder_coating: "border-chart-4/40 bg-chart-4/5 text-chart-4",
+  quality_check: "border-chart-2/40 bg-chart-2/5 text-chart-2",
+  dispatch: "border-primary/40 bg-primary/5 text-primary",
+  completed: "border-success/40 bg-success/5 text-success",
+};
+
+interface DashboardJob {
+  id: string;
+  job_number: string;
+  title: string;
+  stage: JobStage;
+  value: number;
+  deadline?: string | null;
+  created_at: string;
+  material?: string | null;
+  quantity: number;
+  customers: {
+    company_name: string;
+  } | null;
+}
+
+interface QuotationData {
+  id: string;
+  status: string;
+  grand_total: number | string;
+  created_at: string;
+}
 
 function Dashboard() {
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["dashboard-stats-v2"],
+    queryKey: ["dashboard-stats-production-v3"],
     queryFn: async () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+
       const monthStart = new Date();
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
+
       const last30 = new Date();
       last30.setDate(last30.getDate() - 29);
       last30.setHours(0, 0, 0, 0);
 
-      const [leads, quotations, jobs, followUps, recentLeads, recentJobs] = await Promise.all([
-        supabase.from("leads").select("id,status,source,estimated_value,created_at"),
+      const [quotationsRes, jobsRes] = await Promise.all([
         supabase.from("quotations").select("id,status,grand_total,created_at"),
-        supabase.from("jobs").select("id,stage,value,deadline,created_at"),
-        supabase
-          .from("follow_ups")
-          .select("id,due_date,completed,lead_id,notes,leads(name,company)")
-          .eq("completed", false)
-          .order("due_date"),
-        supabase
-          .from("leads")
-          .select("id,lead_code,name,company,status,created_at")
-          .order("created_at", { ascending: false })
-          .limit(5),
         supabase
           .from("jobs")
-          .select("id,job_number,title,stage,deadline")
-          .order("created_at", { ascending: false })
-          .limit(5),
+          .select(
+            "id,job_number,title,stage,value,deadline,created_at,material,quantity,customers(company_name)",
+          )
+          .order("created_at", { ascending: false }),
       ]);
 
-      const l = leads.data ?? [];
-      const q = quotations.data ?? [];
-      const j = jobs.data ?? [];
-      const fu = followUps.data ?? [];
+      if (quotationsRes.error) throw quotationsRes.error;
+      if (jobsRes.error) throw jobsRes.error;
+
+      const q = (quotationsRes.data as unknown as QuotationData[]) ?? [];
+      const j = (jobsRes.data as unknown as DashboardJob[]) ?? [];
 
       const todayRevenue = q
         .filter((x) => x.status === "approved" && new Date(x.created_at) >= today)
-        .reduce((s, x) => s + Number(x.grand_total), 0);
+        .reduce((s, x) => s + Number(x.grand_total || 0), 0);
+
       const monthRevenue = q
         .filter((x) => x.status === "approved" && new Date(x.created_at) >= monthStart)
-        .reduce((s, x) => s + Number(x.grand_total), 0);
-      const pipelineValue = l
-        .filter((x) => !["won", "lost"].includes(x.status))
-        .reduce((s, x) => s + Number(x.estimated_value || 0), 0);
+        .reduce((s, x) => s + Number(x.grand_total || 0), 0);
+
+      const activeJobsValue = j
+        .filter((x) => x.stage !== "completed")
+        .reduce((s, x) => s + Number(x.value || 0), 0);
+
       const pendingQuotations = q.filter((x) => x.status === "draft" || x.status === "sent").length;
-      const pendingJobs = j.filter((x) => x.stage !== "completed").length;
-      const activeLeads = l.filter((x) => !["won", "lost"].includes(x.status)).length;
-      const wonLeads = l.filter((x) => x.status === "won").length;
-      const conv = l.length > 0 ? Math.round((wonLeads / l.length) * 100) : 0;
+      const activeJobs = j.filter((x) => x.stage !== "completed").length;
+      const completedJobs = j.filter((x) => x.stage === "completed").length;
+      const totalJobs = j.length;
+
       const overdueJobs = j.filter(
         (x) => x.deadline && new Date(x.deadline) < today && x.stage !== "completed",
       ).length;
 
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const todayFollowups = fu.filter((f) => f.due_date === todayStr);
-      const missedFollowups = fu.filter((f) => f.due_date < todayStr);
-      const upcoming = fu.filter((f) => f.due_date > todayStr).slice(0, 5);
-
       // 30-day revenue trend
-      const trend: { date: string; revenue: number; quotes: number; label: string }[] = [];
+      const trend: {
+        date: string;
+        revenue: number;
+        quotes: number;
+        label: string;
+      }[] = [];
       for (let i = 0; i < 30; i++) {
         const d = new Date(last30);
         d.setDate(d.getDate() + i);
         const ds = d.toISOString().slice(0, 10);
         const rev = q
           .filter((x) => x.status === "approved" && x.created_at.slice(0, 10) === ds)
-          .reduce((s, x) => s + Number(x.grand_total), 0);
+          .reduce((s, x) => s + Number(x.grand_total || 0), 0);
         const cnt = q.filter((x) => x.created_at.slice(0, 10) === ds).length;
         trend.push({
           date: ds,
           revenue: rev,
           quotes: cnt,
-          label: d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+          label: d.toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+          }),
         });
       }
 
-      // Lead status funnel (ordered)
-      const funnel = LEAD_STATUSES.map((s) => ({
-        status: LEAD_STATUS_LABELS[s],
-        count: l.filter((x) => x.status === s).length,
-      }));
+      // Active jobs distribution (Pie) - showing non-completed stages
+      const activeStageDist = JOB_STAGES.filter((s) => s !== "completed")
+        .map((s) => ({
+          name: JOB_STAGE_LABELS[s],
+          value: j.filter((x) => x.stage === s).length,
+        }))
+        .filter((x) => x.value > 0);
 
-      // Lead source distribution
-      const sources = LEAD_SOURCES.map((s) => ({
-        name: LEAD_SOURCE_LABELS[s],
-        value: l.filter((x) => x.source === s).length,
-      })).filter((x) => x.value > 0);
-
-      // Production stage distribution
-      const stageDist = JOB_STAGES.map((s) => ({
+      // All production stage load (Bar)
+      const stageLoad = JOB_STAGES.map((s) => ({
         stage: JOB_STAGE_LABELS[s],
         count: j.filter((x) => x.stage === s).length,
       }));
 
+      // Upcoming production deadlines (not completed, sorted by deadline asc)
+      const upcomingDeadlines = j
+        .filter((x) => x.stage !== "completed" && x.deadline)
+        .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime())
+        .slice(0, 5);
+
+      // Recent jobs
+      const recentJobsList = j.slice(0, 5);
+
       return {
         todayRevenue,
         monthRevenue,
-        pipelineValue,
+        activeJobsValue,
         pendingQuotations,
-        pendingJobs,
-        activeLeads,
-        wonLeads,
-        conv,
+        activeJobs,
+        completedJobs,
         overdueJobs,
-        todayFollowups,
-        missedFollowups,
-        upcoming,
-        recentLeads: recentLeads.data ?? [],
-        recentJobs: recentJobs.data ?? [],
-        totalLeads: l.length,
+        totalJobs,
         trend,
-        funnel,
-        sources,
-        stageDist,
+        activeStageDist,
+        stageLoad,
+        upcomingDeadlines,
+        recentJobsList,
       };
     },
   });
@@ -182,22 +212,10 @@ function Dashboard() {
       accent: "from-success to-chart-2",
     },
     {
-      label: "Pipeline Value",
-      value: inr(stats?.pipelineValue ?? 0),
-      icon: Target,
+      label: "Active Jobs Value",
+      value: inr(stats?.activeJobsValue ?? 0),
+      icon: IndianRupee,
       accent: "from-chart-3 to-primary",
-    },
-    {
-      label: "Active Leads",
-      value: stats?.activeLeads ?? 0,
-      icon: Users,
-      accent: "from-chart-5 to-primary",
-    },
-    {
-      label: "Conversion",
-      value: `${stats?.conv ?? 0}%`,
-      icon: Activity,
-      accent: "from-warning to-chart-3",
     },
     {
       label: "Pending Quotes",
@@ -207,15 +225,27 @@ function Dashboard() {
     },
     {
       label: "Active Jobs",
-      value: stats?.pendingJobs ?? 0,
+      value: stats?.activeJobs ?? 0,
       icon: Factory,
       accent: "from-chart-4 to-warning",
+    },
+    {
+      label: "Completed Jobs",
+      value: stats?.completedJobs ?? 0,
+      icon: Activity,
+      accent: "from-success to-chart-3",
     },
     {
       label: "Overdue Jobs",
       value: stats?.overdueJobs ?? 0,
       icon: AlertTriangle,
       accent: "from-destructive to-chart-4",
+    },
+    {
+      label: "Total Jobs",
+      value: stats?.totalJobs ?? 0,
+      icon: Factory,
+      accent: "from-chart-1 to-chart-3",
     },
   ];
 
@@ -225,11 +255,14 @@ function Dashboard() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Operations Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Real-time view of leads, jobs, and revenue across MAM Industries.
+            Real-time view of revenue, quotations, and production jobs.
           </p>
         </div>
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
-          {new Date().toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })}
+          {new Date().toLocaleString("en-IN", {
+            dateStyle: "full",
+            timeStyle: "short",
+          })}
         </div>
       </div>
 
@@ -257,7 +290,7 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* Revenue trend (large) + Lead sources pie */}
+      {/* Revenue trend (large) + Active jobs by stage */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="glass-panel p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
@@ -294,7 +327,7 @@ function Dashboard() {
                     borderRadius: 6,
                     fontSize: 12,
                   }}
-                  formatter={(value: any) => [inr(Number(value)), "Revenue"]}
+                  formatter={(value: string | number | boolean) => [inr(Number(value)), "Revenue"]}
                 />
                 <Area
                   type="monotone"
@@ -310,18 +343,18 @@ function Dashboard() {
 
         <div className="glass-panel p-5">
           <h2 className="font-display font-semibold mb-4 flex items-center gap-2">
-            <Users className="size-4 text-chart-5" /> Lead Sources
+            <Factory className="size-4 text-chart-5" /> Active Jobs by Stage
           </h2>
           <div className="h-72">
-            {(stats?.sources?.length ?? 0) === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                No leads yet
+            {(stats?.activeStageDist?.length ?? 0) === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground text-center">
+                No active jobs in production
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={stats?.sources}
+                    data={stats?.activeStageDist}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
@@ -330,7 +363,7 @@ function Dashboard() {
                     outerRadius={90}
                     paddingAngle={2}
                   >
-                    {stats?.sources.map((_, i) => (
+                    {stats?.activeStageDist.map((_, i) => (
                       <Cell key={i} fill={CHART_HEX[i % CHART_HEX.length]} />
                     ))}
                   </Pie>
@@ -346,196 +379,183 @@ function Dashboard() {
               </ResponsiveContainer>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-1 mt-3">
-            {stats?.sources.slice(0, 6).map((s, i) => (
+          <div className="grid grid-cols-2 gap-1 mt-3 max-h-24 overflow-y-auto pr-1">
+            {stats?.activeStageDist.map((s, i) => (
               <div key={s.name} className="flex items-center gap-2 text-xs">
                 <span
-                  className="size-2 rounded-full"
+                  className="size-2 rounded-full shrink-0"
                   style={{ background: CHART_HEX[i % CHART_HEX.length] }}
                 />
                 <span className="text-muted-foreground truncate flex-1">{s.name}</span>
-                <span className="font-mono">{s.value}</span>
+                <span className="font-mono text-foreground font-semibold">{s.value}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Lead funnel + Production stages */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="glass-panel p-5 hover-lift border-border/80">
-          <h2 className="font-display font-semibold mb-4 flex items-center gap-2 text-foreground">
-            <Target className="size-4 text-primary" /> Lead Funnel
+      {/* Production stage load */}
+      <div className="glass-panel p-5 hover-lift border-border/80">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display font-semibold flex items-center gap-2 text-foreground">
+            <Factory className="size-4 text-warning" /> Production Stage Load
           </h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats?.funnel ?? []} layout="vertical" margin={{ left: 20 }}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="status"
-                  tick={{ fontSize: 11, fill: "hsl(var(--foreground))" }}
-                  width={110}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(var(--background))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                  {stats?.funnel.map((_, i) => (
-                    <Cell key={i} fill={CHART_HEX[i % CHART_HEX.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <Link to="/jobs" className="text-xs text-primary hover:underline font-medium">
+            Open Kanban →
+          </Link>
         </div>
-
-        <div className="glass-panel p-5 hover-lift border-border/80">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold flex items-center gap-2 text-foreground">
-              <Factory className="size-4 text-warning" /> Production Stages
-            </h2>
-            <Link to="/jobs" className="text-xs text-primary hover:underline font-medium">
-              Open Kanban →
-            </Link>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats?.stageDist ?? []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis
-                  dataKey="stage"
-                  tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
-                  angle={-20}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(var(--background))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="count" fill={CHART_HEX[2]} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stats?.stageLoad ?? []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis
+                dataKey="stage"
+                tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                angle={-15}
+                textAnchor="end"
+                height={50}
+                interval={0}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                allowDecimals={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "hsl(var(--background))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
+              />
+              <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]}>
+                {stats?.stageLoad.map((entry, i) => (
+                  <Cell key={i} fill={CHART_HEX[i % CHART_HEX.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Recent leads + Today's follow-ups */}
+      {/* Recent production jobs + Upcoming production deadlines */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="glass-panel p-5 lg:col-span-2 hover-lift border-border/80">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold flex items-center gap-2 text-foreground">
-              <Activity className="size-4 text-primary" /> Recent Leads
+              <Activity className="size-4 text-primary" /> Recent Production Jobs
             </h2>
-            <Link to="/leads" className="text-xs text-primary hover:underline font-medium">
-              View all →
+            <Link to="/jobs" className="text-xs text-primary hover:underline font-medium">
+              View Kanban →
             </Link>
           </div>
           <div className="space-y-2">
-            {stats?.recentLeads.length === 0 && (
+            {isLoading ? (
+              <div className="text-sm text-muted-foreground text-center py-6">
+                Loading recent jobs...
+              </div>
+            ) : (stats?.recentJobsList?.length ?? 0) === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">
-                No leads yet.{" "}
-                <Link to="/leads" className="text-primary font-medium">
+                No jobs in production yet.{" "}
+                <Link to="/jobs" className="text-primary font-medium">
                   Add the first one →
                 </Link>
               </p>
-            )}
-            {stats?.recentLeads.map((l: any) => (
-              <Link
-                key={l.id}
-                to="/leads/$id"
-                params={{ id: l.id }}
-                className="flex items-center justify-between p-3 rounded-lg bg-background/25 hover:bg-accent/30 transition-all border border-border/40 hover:translate-x-0.5"
-              >
-                <div className="min-w-0">
-                  <div className="font-medium text-sm text-foreground truncate">
-                    {l.name}{" "}
-                    <span className="text-muted-foreground text-xs font-normal">
-                      · {l.company || "—"}
+            ) : (
+              stats?.recentJobsList.map((job: DashboardJob) => (
+                <div
+                  key={job.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-background/25 hover:bg-accent/30 transition-all border border-border/40 hover:translate-x-0.5"
+                >
+                  <div className="min-w-0 flex-1 mr-3">
+                    <div className="font-medium text-sm text-foreground truncate">
+                      {job.title}{" "}
+                      <span className="text-muted-foreground text-xs font-normal">
+                        · {job.customers?.company_name || "—"}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      {job.job_number} · Qty {job.quantity}{" "}
+                      {job.material ? `· ${job.material}` : ""}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {job.value > 0 && (
+                      <span className="text-xs font-mono font-semibold text-foreground">
+                        {inr(job.value)}
+                      </span>
+                    )}
+                    <span
+                      className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border font-medium ${STAGE_TONE[job.stage as JobStage] || "border-border bg-muted"}`}
+                    >
+                      {JOB_STAGE_LABELS[job.stage as JobStage]}
                     </span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                    {l.lead_code}
-                  </div>
                 </div>
-                <span
-                  className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border ${STATUS_TONE[l.status as keyof typeof STATUS_TONE]}`}
-                >
-                  {LEAD_STATUS_LABELS[l.status as keyof typeof LEAD_STATUS_LABELS]}
-                </span>
-              </Link>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
         <div className="glass-panel p-5 hover-lift border-border/80">
           <h2 className="font-display font-semibold flex items-center gap-2 mb-4 text-foreground">
-            <Clock className="size-4 text-warning" /> Today's Follow-ups
+            <Clock className="size-4 text-warning" /> Upcoming Deadlines
           </h2>
-          {stats?.todayFollowups.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">All caught up.</p>
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground text-center py-6">
+              Loading deadlines...
+            </div>
+          ) : (stats?.upcomingDeadlines?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No upcoming deadlines.</p>
           ) : (
-            <div className="space-y-2">
-              {stats?.todayFollowups.slice(0, 5).map((f: any) => (
-                <div key={f.id} className="p-3 rounded-lg bg-background/25 border border-border/40">
-                  <div className="text-sm font-medium text-foreground">{f.leads?.name || "—"}</div>
-                  <div className="text-xs text-muted-foreground truncate mt-0.5">{f.notes}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {stats && stats.missedFollowups.length > 0 && (
-            <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/25">
-              <div className="text-xs font-semibold text-destructive uppercase tracking-widest">
-                ⚠ {stats.missedFollowups.length} Missed
-              </div>
-              <Link
-                to="/follow-ups"
-                className="text-xs text-destructive hover:underline font-medium"
-              >
-                Review missed follow-ups →
-              </Link>
-            </div>
-          )}
-          <div className="mt-4 pt-4 border-t border-border/60">
-            <h3 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 font-semibold">
-              Upcoming
-            </h3>
-            {stats?.upcoming.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nothing scheduled.</p>
-            ) : (
-              <div className="space-y-2">
-                {stats?.upcoming.slice(0, 4).map((f: any) => (
-                  <div key={f.id} className="flex items-center justify-between text-xs">
-                    <span className="truncate text-muted-foreground">{f.leads?.name}</span>
-                    <span className="font-mono text-foreground">{fmtDate(f.due_date)}</span>
+            <div className="space-y-3">
+              {stats?.upcomingDeadlines.map((job: DashboardJob) => {
+                const overdue = job.deadline && new Date(job.deadline) < new Date();
+                return (
+                  <div
+                    key={job.id}
+                    className="p-3 rounded-lg bg-background/25 border border-border/40 hover:bg-accent/10 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div
+                        className="font-medium text-xs text-foreground truncate max-w-[150px]"
+                        title={job.title}
+                      >
+                        {job.title}
+                      </div>
+                      <span
+                        className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded border font-medium ${STAGE_TONE[job.stage as JobStage] || "border-border"}`}
+                      >
+                        {JOB_STAGE_LABELS[job.stage as JobStage]}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground truncate mt-1">
+                      {job.customers?.company_name || "—"}
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
+                      <span className="text-[9px] font-mono text-muted-foreground">
+                        {job.job_number}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium border ${
+                          overdue
+                            ? "bg-destructive/15 text-destructive border-destructive/25"
+                            : "bg-secondary/60 text-muted-foreground border-border/50"
+                        }`}
+                      >
+                        {overdue ? (
+                          <AlertTriangle className="size-2.5" />
+                        ) : (
+                          <Calendar className="size-2.5" />
+                        )}
+                        {fmtDate(job.deadline)}
+                      </span>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
