@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ActivityTimeline } from "@/components/activity-timeline";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Activity } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/activity")({
@@ -18,10 +24,14 @@ function ActivityPage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
             <Activity className="size-7 text-primary" /> Activity Log
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Complete audit trail of every change across the ERP.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Complete audit trail of every change across the ERP.
+          </p>
         </div>
         <Select value={entityType} onValueChange={setEntityType}>
-          <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-56">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All entities</SelectItem>
             <SelectItem value="lead">Leads</SelectItem>

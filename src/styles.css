@@ -71,16 +71,16 @@
   --radius: 0.5rem;
 
   /* Industrial dark theme as default — this is admin software, not a marketing site */
-  --background: oklch(0.18 0.025 250);        /* deep navy */
-  --foreground: oklch(0.97 0.005 240);        /* near-white */
+  --background: oklch(0.18 0.025 250); /* deep navy */
+  --foreground: oklch(0.97 0.005 240); /* near-white */
 
-  --card: oklch(0.22 0.028 250);              /* steel panel */
+  --card: oklch(0.22 0.028 250); /* steel panel */
   --card-foreground: oklch(0.97 0.005 240);
 
   --popover: oklch(0.22 0.028 250);
   --popover-foreground: oklch(0.97 0.005 240);
 
-  --primary: oklch(0.66 0.165 240);           /* industrial blue */
+  --primary: oklch(0.66 0.165 240); /* industrial blue */
   --primary-foreground: oklch(0.98 0.005 240);
 
   --secondary: oklch(0.28 0.025 250);
@@ -89,7 +89,7 @@
   --muted: oklch(0.26 0.022 250);
   --muted-foreground: oklch(0.68 0.02 245);
 
-  --accent: oklch(0.30 0.035 245);
+  --accent: oklch(0.3 0.035 245);
   --accent-foreground: oklch(0.97 0.005 240);
 
   --destructive: oklch(0.62 0.22 25);
@@ -101,13 +101,13 @@
   --success: oklch(0.68 0.15 155);
   --success-foreground: oklch(0.16 0.02 155);
 
-  --steel: oklch(0.40 0.018 250);
+  --steel: oklch(0.4 0.018 250);
   --steel-foreground: oklch(0.97 0.005 240);
 
   --industrial: oklch(0.66 0.165 240);
   --industrial-foreground: oklch(0.98 0.005 240);
 
-  --border: oklch(0.30 0.025 250);
+  --border: oklch(0.3 0.025 250);
   --input: oklch(0.26 0.025 250);
   --ring: oklch(0.66 0.165 240);
 
@@ -127,8 +127,12 @@
   --sidebar-ring: oklch(0.66 0.165 240);
 
   /* Industrial gradients & shadows */
-  --gradient-industrial: linear-gradient(135deg, oklch(0.66 0.165 240) 0%, oklch(0.55 0.18 250) 100%);
-  --gradient-steel: linear-gradient(180deg, oklch(0.24 0.028 250) 0%, oklch(0.20 0.025 250) 100%);
+  --gradient-industrial: linear-gradient(
+    135deg,
+    oklch(0.66 0.165 240) 0%,
+    oklch(0.55 0.18 250) 100%
+  );
+  --gradient-steel: linear-gradient(180deg, oklch(0.24 0.028 250) 0%, oklch(0.2 0.025 250) 100%);
   --gradient-glow: radial-gradient(circle at 50% 0%, oklch(0.66 0.165 240 / 0.18), transparent 70%);
   --shadow-panel: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 4px 16px oklch(0 0 0 / 0.25);
   --shadow-elevated: 0 1px 0 oklch(1 0 0 / 0.06) inset, 0 12px 32px oklch(0 0 0 / 0.4);
@@ -142,8 +146,13 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { font-family: var(--font-sans); }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    font-family: var(--font-sans);
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -154,12 +163,22 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeSpeed;
   }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.01em; }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
 
   /* Smooth scroll + respect reduced motion */
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+  }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -170,29 +189,55 @@
 
 /* Reusable animation keyframes & utilities */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.66 0.165 240 / 0.35); }
-  50% { box-shadow: 0 0 0 8px oklch(0.66 0.165 240 / 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.66 0.165 240 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px oklch(0.66 0.165 240 / 0);
+  }
 }
 
-@utility animate-fade-in-up { animation: fade-in-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
-@utility animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+@utility animate-fade-in-up {
+  animation: fade-in-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
 @utility hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  &:hover { transform: translateY(-2px); box-shadow: var(--shadow-elevated); }
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+  }
 }
 @utility skeleton-shimmer {
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     var(--color-muted) 0%,
     color-mix(in oklab, var(--color-muted) 60%, var(--color-accent)) 50%,
-    var(--color-muted) 100%);
+    var(--color-muted) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }

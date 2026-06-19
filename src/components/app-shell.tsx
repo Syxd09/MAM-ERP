@@ -3,9 +3,28 @@ import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, UserPlus, FileText, Factory, Calculator, ClipboardList, LogOut, Settings, Bell, Activity } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  FileText,
+  Factory,
+  Calculator,
+  ClipboardList,
+  LogOut,
+  Settings,
+  Bell,
+  Activity,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CommandPalette, CommandTrigger } from "@/components/command-palette";
 import { NotificationsBell } from "@/components/notifications-bell";
@@ -21,7 +40,8 @@ const nav = [
   { to: "/activity", label: "Activity Log", icon: Activity },
 ] as const;
 // suppress unused icon warnings
-void UserPlus; void Bell;
+void UserPlus;
+void Bell;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -32,13 +52,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: profile } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
       const [{ data: prof }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id,full_name,email,avatar_url").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id,full_name,email,avatar_url")
+          .eq("id", user.id)
+          .maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", user.id),
       ]);
-      return { user, profile: prof, roles: roles?.map(r => r.role) ?? [] };
+      return { user, profile: prof, roles: roles?.map((r) => r.role) ?? [] };
     },
     staleTime: Infinity,
     gcTime: Infinity,
@@ -55,7 +81,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const initials = (profile?.profile?.full_name || profile?.user?.email || "U")
-    .split(" ").map((s: string) => s[0]).join("").slice(0, 2).toUpperCase();
+    .split(" ")
+    .map((s: string) => s[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="min-h-screen flex w-full">
@@ -68,7 +98,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="leading-tight">
             <div className="font-display font-bold text-sidebar-foreground">MAM Industries</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-widest">ERP Console</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-widest">
+              ERP Console
+            </div>
           </div>
         </div>
 
@@ -90,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
                     active
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground hover:translate-x-0.5"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground hover:translate-x-0.5",
                   )}
                 >
                   {active && (
@@ -100,7 +132,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <Icon className={cn("size-4 transition-transform duration-200", active ? "text-primary" : "group-hover:scale-110")} />
+                  <Icon
+                    className={cn(
+                      "size-4 transition-transform duration-200",
+                      active ? "text-primary" : "group-hover:scale-110",
+                    )}
+                  />
                   {item.label}
                 </Link>
               </motion.div>
@@ -121,19 +158,35 @@ export function AppShell({ children }: { children: ReactNode }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 h-10">
-                <span className="size-8 rounded-full gradient-industrial flex items-center justify-center text-xs font-bold text-primary-foreground">{initials}</span>
+                <span className="size-8 rounded-full gradient-industrial flex items-center justify-center text-xs font-bold text-primary-foreground">
+                  {initials}
+                </span>
                 <div className="hidden sm:flex flex-col items-start leading-tight">
-                  <span className="text-sm font-medium">{profile?.profile?.full_name || profile?.user?.email}</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{profile?.roles?.[0] || "user"}</span>
+                  <span className="text-sm font-medium">
+                    {profile?.profile?.full_name || profile?.user?.email}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {profile?.roles?.[0] || "user"}
+                  </span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Signed in as<br/><span className="text-muted-foreground font-normal">{profile?.user?.email}</span></DropdownMenuLabel>
+              <DropdownMenuLabel>
+                Signed in as
+                <br />
+                <span className="text-muted-foreground font-normal">{profile?.user?.email}</span>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem><Settings className="size-4 mr-2" />Settings</DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="size-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive"><LogOut className="size-4 mr-2" />Sign out</DropdownMenuItem>
+              <DropdownMenuItem onClick={signOut} className="text-destructive">
+                <LogOut className="size-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -144,7 +197,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               const active = pathname.startsWith(item.to);
               const Icon = item.icon;
               return (
-                <Link key={item.to} to={item.to} preload="intent" className={cn("flex items-center gap-2 rounded-md px-3 py-2 text-xs whitespace-nowrap transition-colors", active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground")}>
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  preload="intent"
+                  className={cn(
+                    "flex items-center gap-2 rounded-md px-3 py-2 text-xs whitespace-nowrap transition-colors",
+                    active
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
                   <Icon className="size-3.5" /> {item.label}
                 </Link>
               );
@@ -152,7 +215,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden"><PageTransition>{children}</PageTransition></main>
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
     </div>
   );

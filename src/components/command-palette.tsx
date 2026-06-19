@@ -2,8 +2,29 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
-import { LayoutDashboard, UserPlus, Users, FileText, Factory, Calculator, ClipboardList, Bell, Activity, Plus, Search } from "lucide-react";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import {
+  LayoutDashboard,
+  UserPlus,
+  Users,
+  FileText,
+  Factory,
+  Calculator,
+  ClipboardList,
+  Bell,
+  Activity,
+  Plus,
+  Search,
+} from "lucide-react";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, hint: "Overview" },
@@ -23,7 +44,13 @@ const QUICK_ACTIONS = [
   { to: "/jobs", label: "Create production job", icon: Plus },
 ] as const;
 
-export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+export function CommandPalette({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+}) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
@@ -44,14 +71,32 @@ export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (v: 
     queryFn: async () => {
       const s = `%${query}%`;
       const [leads, customers, quotations, jobs] = await Promise.all([
-        supabase.from("leads").select("id,lead_code,name,company").or(`name.ilike.${s},company.ilike.${s},lead_code.ilike.${s},phone.ilike.${s}`).limit(5),
-        supabase.from("customers").select("id,company_name,contact_person").or(`company_name.ilike.${s},contact_person.ilike.${s}`).limit(5),
-        supabase.from("quotations").select("id,quotation_number,customer_name").or(`quotation_number.ilike.${s},customer_name.ilike.${s}`).limit(5),
-        supabase.from("jobs").select("id,job_number,title").or(`job_number.ilike.${s},title.ilike.${s}`).limit(5),
+        supabase
+          .from("leads")
+          .select("id,lead_code,name,company")
+          .or(`name.ilike.${s},company.ilike.${s},lead_code.ilike.${s},phone.ilike.${s}`)
+          .limit(5),
+        supabase
+          .from("customers")
+          .select("id,company_name,contact_person")
+          .or(`company_name.ilike.${s},contact_person.ilike.${s}`)
+          .limit(5),
+        supabase
+          .from("quotations")
+          .select("id,quotation_number,customer_name")
+          .or(`quotation_number.ilike.${s},customer_name.ilike.${s}`)
+          .limit(5),
+        supabase
+          .from("jobs")
+          .select("id,job_number,title")
+          .or(`job_number.ilike.${s},title.ilike.${s}`)
+          .limit(5),
       ]);
       return {
-        leads: leads.data ?? [], customers: customers.data ?? [],
-        quotations: quotations.data ?? [], jobs: jobs.data ?? [],
+        leads: leads.data ?? [],
+        customers: customers.data ?? [],
+        quotations: quotations.data ?? [],
+        jobs: jobs.data ?? [],
       };
     },
   });
@@ -64,7 +109,11 @@ export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (v: 
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput value={query} onValueChange={setQuery} placeholder="Search leads, quotes, jobs… or jump to a page" />
+      <CommandInput
+        value={query}
+        onValueChange={setQuery}
+        placeholder="Search leads, quotes, jobs… or jump to a page"
+      />
       <CommandList className="max-h-[420px]">
         <CommandEmpty>No results — try a different search.</CommandEmpty>
 
@@ -77,7 +126,9 @@ export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (v: 
                     <UserPlus className="size-4 mr-2 text-primary" />
                     <span className="font-medium">{l.name}</span>
                     <span className="text-muted-foreground ml-2">· {l.company || "—"}</span>
-                    <span className="ml-auto text-xs font-mono text-muted-foreground">{l.lead_code}</span>
+                    <span className="ml-auto text-xs font-mono text-muted-foreground">
+                      {l.lead_code}
+                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -144,8 +195,10 @@ export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (v: 
 
 export function CommandTrigger({ onClick }: { onClick: () => void }) {
   return (
-    <button onClick={onClick}
-      className="relative flex-1 max-w-md flex items-center gap-2 h-9 px-3 rounded-md border border-border bg-background/60 text-sm text-muted-foreground hover:bg-background/80 hover:border-primary/40 transition-colors text-left">
+    <button
+      onClick={onClick}
+      className="relative flex-1 max-w-md flex items-center gap-2 h-9 px-3 rounded-md border border-border bg-background/60 text-sm text-muted-foreground hover:bg-background/80 hover:border-primary/40 transition-colors text-left"
+    >
       <Search className="size-4" />
       <span className="flex-1">Search or jump to…</span>
       <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[10px] font-mono">

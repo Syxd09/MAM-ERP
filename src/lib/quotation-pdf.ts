@@ -74,21 +74,45 @@ export function generateQuotationPDF(q: QuotationPDFData) {
 
   doc.setFontSize(11).setFont("helvetica", "bold");
   doc.text(q.customer_company || q.customer_name, 14, 52);
-  doc.setFontSize(9).setFont("helvetica", "normal").setTextColor(...gray);
+  doc
+    .setFontSize(9)
+    .setFont("helvetica", "normal")
+    .setTextColor(...gray);
   let y = 57;
-  if (q.customer_company && q.customer_name) { doc.text(`Attn: ${q.customer_name}`, 14, y); y += 4.5; }
-  if (q.customer_address) { doc.text(doc.splitTextToSize(q.customer_address, 90), 14, y); y += 4.5 * Math.ceil(q.customer_address.length / 60); }
-  if (q.customer_phone) { doc.text(`Phone: ${q.customer_phone}`, 14, y); y += 4.5; }
-  if (q.customer_email) { doc.text(`Email: ${q.customer_email}`, 14, y); y += 4.5; }
-  if (q.customer_gst) { doc.text(`GST: ${q.customer_gst}`, 14, y); y += 4.5; }
+  if (q.customer_company && q.customer_name) {
+    doc.text(`Attn: ${q.customer_name}`, 14, y);
+    y += 4.5;
+  }
+  if (q.customer_address) {
+    doc.text(doc.splitTextToSize(q.customer_address, 90), 14, y);
+    y += 4.5 * Math.ceil(q.customer_address.length / 60);
+  }
+  if (q.customer_phone) {
+    doc.text(`Phone: ${q.customer_phone}`, 14, y);
+    y += 4.5;
+  }
+  if (q.customer_email) {
+    doc.text(`Email: ${q.customer_email}`, 14, y);
+    y += 4.5;
+  }
+  if (q.customer_gst) {
+    doc.text(`GST: ${q.customer_gst}`, 14, y);
+    y += 4.5;
+  }
 
   // Validity box
   if (q.valid_until) {
     doc.setFillColor(245, 247, 250);
     doc.roundedRect(pageW - 64, 44, 50, 16, 2, 2, "F");
-    doc.setFontSize(7).setFont("helvetica", "bold").setTextColor(...gray);
+    doc
+      .setFontSize(7)
+      .setFont("helvetica", "bold")
+      .setTextColor(...gray);
     doc.text("VALID UNTIL", pageW - 60, 50);
-    doc.setFontSize(11).setFont("helvetica", "bold").setTextColor(...navy);
+    doc
+      .setFontSize(11)
+      .setFont("helvetica", "bold")
+      .setTextColor(...navy);
     doc.text(fmtDate(q.valid_until), pageW - 60, 56);
   }
 
@@ -108,20 +132,29 @@ export function generateQuotationPDF(q: QuotationPDFData) {
     styles: { fontSize: 9, cellPadding: 2.5, textColor: navy as any },
     headStyles: { fillColor: navy as any, textColor: 255, fontStyle: "bold", fontSize: 8 },
     alternateRowStyles: { fillColor: [248, 250, 252] as any },
-    columnStyles: { 0: { halign: "center", cellWidth: 10 }, 3: { halign: "right" }, 5: { halign: "right" }, 6: { halign: "right", fontStyle: "bold" } },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 10 },
+      3: { halign: "right" },
+      5: { halign: "right" },
+      6: { halign: "right", fontStyle: "bold" },
+    },
     margin: { left: 14, right: 14 },
   });
 
   // Totals box
   const afterTable = (doc as any).lastAutoTable.finalY + 6;
-  const boxX = pageW - 84, boxW = 70;
+  const boxX = pageW - 84,
+    boxW = 70;
   doc.setDrawColor(220, 225, 232);
   doc.setLineWidth(0.3);
 
   const totalsRow = (label: string, value: string, bold = false, fill = false) => {
     const yy = (totalsRow as any).y;
-    if (fill) { doc.setFillColor(...navy); doc.rect(boxX, yy - 4, boxW, 8, "F"); doc.setTextColor(255, 255, 255); }
-    else doc.setTextColor(...navy);
+    if (fill) {
+      doc.setFillColor(...navy);
+      doc.rect(boxX, yy - 4, boxW, 8, "F");
+      doc.setTextColor(255, 255, 255);
+    } else doc.setTextColor(...navy);
     doc.setFont("helvetica", bold ? "bold" : "normal").setFontSize(bold ? 10 : 9);
     doc.text(label, boxX + 3, yy);
     doc.text(value, boxX + boxW - 3, yy, { align: "right" });
@@ -129,29 +162,46 @@ export function generateQuotationPDF(q: QuotationPDFData) {
   };
   (totalsRow as any).y = afterTable + 2;
   totalsRow("Subtotal", `₹ ${q.subtotal.toLocaleString("en-IN")}`);
-  if (q.discount_amount > 0) totalsRow(`Discount (${q.discount_pct}%)`, `– ₹ ${q.discount_amount.toLocaleString("en-IN")}`);
+  if (q.discount_amount > 0)
+    totalsRow(`Discount (${q.discount_pct}%)`, `– ₹ ${q.discount_amount.toLocaleString("en-IN")}`);
   totalsRow(`GST (${q.gst_pct}%)`, `₹ ${q.gst_amount.toLocaleString("en-IN")}`);
   totalsRow("GRAND TOTAL", inr(q.grand_total), true, true);
 
   // Notes & terms
   let footY = (totalsRow as any).y + 8;
   if (q.notes) {
-    doc.setTextColor(...navy).setFontSize(8).setFont("helvetica", "bold").text("NOTES", 14, footY);
-    doc.setFont("helvetica", "normal").setTextColor(...gray).setFontSize(9);
+    doc
+      .setTextColor(...navy)
+      .setFontSize(8)
+      .setFont("helvetica", "bold")
+      .text("NOTES", 14, footY);
+    doc
+      .setFont("helvetica", "normal")
+      .setTextColor(...gray)
+      .setFontSize(9);
     const lines = doc.splitTextToSize(q.notes, pageW - 100);
     doc.text(lines, 14, footY + 5);
     footY += 5 + lines.length * 4;
   }
 
-  doc.setTextColor(...navy).setFontSize(8).setFont("helvetica", "bold").text("TERMS & CONDITIONS", 14, footY + 4);
-  doc.setFont("helvetica", "normal").setTextColor(...gray).setFontSize(8);
-  const defaultTerms = q.terms || [
-    "1. Prices are exclusive of transportation unless stated otherwise.",
-    "2. 50% advance against PO; balance before dispatch.",
-    "3. Delivery within 7–10 working days from receipt of advance.",
-    "4. Material warranty: 30 days from dispatch on workmanship.",
-    "5. All disputes subject to local jurisdiction.",
-  ].join("\n");
+  doc
+    .setTextColor(...navy)
+    .setFontSize(8)
+    .setFont("helvetica", "bold")
+    .text("TERMS & CONDITIONS", 14, footY + 4);
+  doc
+    .setFont("helvetica", "normal")
+    .setTextColor(...gray)
+    .setFontSize(8);
+  const defaultTerms =
+    q.terms ||
+    [
+      "1. Prices are exclusive of transportation unless stated otherwise.",
+      "2. 50% advance against PO; balance before dispatch.",
+      "3. Delivery within 7–10 working days from receipt of advance.",
+      "4. Material warranty: 30 days from dispatch on workmanship.",
+      "5. All disputes subject to local jurisdiction.",
+    ].join("\n");
   const termLines = doc.splitTextToSize(defaultTerms, pageW - 28);
   doc.text(termLines, 14, footY + 9);
 
@@ -159,16 +209,27 @@ export function generateQuotationPDF(q: QuotationPDFData) {
   const sigY = doc.internal.pageSize.getHeight() - 30;
   doc.setDrawColor(...gray).setLineWidth(0.3);
   doc.line(pageW - 70, sigY, pageW - 14, sigY);
-  doc.setTextColor(...navy).setFontSize(9).setFont("helvetica", "bold");
+  doc
+    .setTextColor(...navy)
+    .setFontSize(9)
+    .setFont("helvetica", "bold");
   doc.text("For MAM INDUSTRIES", pageW - 14, sigY + 5, { align: "right" });
-  doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gray);
+  doc
+    .setFont("helvetica", "normal")
+    .setFontSize(8)
+    .setTextColor(...gray);
   doc.text("Authorised Signatory", pageW - 14, sigY + 10, { align: "right" });
 
   // Footer band
   doc.setFillColor(...navy);
   doc.rect(0, doc.internal.pageSize.getHeight() - 10, pageW, 10, "F");
   doc.setTextColor(255, 255, 255).setFontSize(7);
-  doc.text("MAM Industries · Precision Manufacturing · This is a computer generated quotation.", pageW / 2, doc.internal.pageSize.getHeight() - 4, { align: "center" });
+  doc.text(
+    "MAM Industries · Precision Manufacturing · This is a computer generated quotation.",
+    pageW / 2,
+    doc.internal.pageSize.getHeight() - 4,
+    { align: "center" },
+  );
 
   doc.save(`${q.quotation_number}.pdf`);
 }
