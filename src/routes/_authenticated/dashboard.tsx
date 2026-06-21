@@ -11,6 +11,7 @@ import {
   IndianRupee,
   AlertTriangle,
   Calendar,
+  ArrowUpRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -34,11 +35,11 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 const CHART_HEX = [
-  "#3b82f6",
-  "#22c55e",
-  "#f59e0b",
-  "#ef4444",
-  "#a855f7",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
   "#06b6d4",
   "#ec4899",
   "#14b8a6",
@@ -46,15 +47,15 @@ const CHART_HEX = [
 ];
 
 const STAGE_TONE: Record<JobStage, string> = {
-  design_received: "border-chart-5/40 bg-chart-5/5 text-chart-5",
-  programming: "border-chart-3/40 bg-chart-3/5 text-chart-3",
-  laser_cutting: "border-primary/40 bg-primary/5 text-primary",
-  bending: "border-warning/40 bg-warning/5 text-warning",
-  welding: "border-destructive/40 bg-destructive/5 text-destructive",
-  powder_coating: "border-chart-4/40 bg-chart-4/5 text-chart-4",
-  quality_check: "border-chart-2/40 bg-chart-2/5 text-chart-2",
-  dispatch: "border-primary/40 bg-primary/5 text-primary",
-  completed: "border-success/40 bg-success/5 text-success",
+  design_received: "border-chart-5/30 bg-chart-5/5 text-chart-5",
+  programming: "border-chart-3/30 bg-chart-3/5 text-chart-3",
+  laser_cutting: "border-primary/30 bg-primary/5 text-primary",
+  bending: "border-warning/30 bg-warning/5 text-warning",
+  welding: "border-destructive/30 bg-destructive/5 text-destructive",
+  powder_coating: "border-chart-4/30 bg-chart-4/5 text-chart-4",
+  quality_check: "border-chart-2/30 bg-chart-2/5 text-chart-2",
+  dispatch: "border-primary/30 bg-primary/5 text-primary",
+  completed: "border-success/30 bg-success/5 text-success",
 };
 
 interface DashboardJob {
@@ -203,62 +204,73 @@ function Dashboard() {
       label: "Today Revenue",
       value: inr(stats?.todayRevenue ?? 0),
       icon: IndianRupee,
-      accent: "from-primary to-chart-5",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
       label: "Monthly Revenue",
       value: inr(stats?.monthRevenue ?? 0),
       icon: TrendingUp,
-      accent: "from-success to-chart-2",
+      color: "text-success",
+      bgColor: "bg-success/10",
     },
     {
       label: "Active Jobs Value",
       value: inr(stats?.activeJobsValue ?? 0),
       icon: IndianRupee,
-      accent: "from-chart-3 to-primary",
+      color: "text-chart-5",
+      bgColor: "bg-chart-5/10",
     },
     {
       label: "Pending Quotes",
       value: stats?.pendingQuotations ?? 0,
       icon: FileText,
-      accent: "from-chart-5 to-primary",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
       label: "Active Jobs",
       value: stats?.activeJobs ?? 0,
       icon: Factory,
-      accent: "from-chart-4 to-warning",
+      color: "text-warning",
+      bgColor: "bg-warning/10",
     },
     {
       label: "Completed Jobs",
       value: stats?.completedJobs ?? 0,
       icon: Activity,
-      accent: "from-success to-chart-3",
+      color: "text-success",
+      bgColor: "bg-success/10",
     },
     {
       label: "Overdue Jobs",
       value: stats?.overdueJobs ?? 0,
       icon: AlertTriangle,
-      accent: "from-destructive to-chart-4",
+      color: "text-destructive",
+      bgColor: "bg-destructive/10",
     },
     {
       label: "Total Jobs",
       value: stats?.totalJobs ?? 0,
       icon: Factory,
-      accent: "from-chart-1 to-chart-3",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between flex-wrap gap-4">
+      {/* Welcome Banner */}
+      <div className="flex items-end justify-between flex-wrap gap-4 pb-1 border-b border-white/5">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Operations Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Real-time view of revenue, quotations, and production jobs.
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground font-display">
+            Operations Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            Monitor real-time revenue, quotations, and active production stage load.
           </p>
         </div>
-        <div className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
+        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest bg-secondary/50 px-3 py-1 rounded-lg border border-white/5">
           {new Date().toLocaleString("en-IN", {
             dateStyle: "full",
             timeStyle: "short",
@@ -266,38 +278,46 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* KPI strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3.5">
         {kpis.map((k, i) => (
           <motion.div
             key={k.label}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04 }}
-            className="glass-panel p-4 relative overflow-hidden group hover-lift cursor-pointer border-border/80"
+            transition={{ delay: i * 0.03 }}
+            className="glass-panel p-4.5 relative overflow-hidden group hover-lift border border-white/5 bg-card/15 hover:bg-card/25 transition-all rounded-xl"
           >
-            <div
-              className={`absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br ${k.accent} opacity-10 group-hover:opacity-20 transition-opacity`}
-            />
-            <k.icon className="size-4 text-primary" />
-            <div className="mt-2 text-xl font-bold font-display truncate text-foreground group-hover:scale-102 origin-left transition-transform">
+            <div className="flex items-center justify-between">
+              <div
+                className={`size-8 rounded-lg ${k.bgColor} ${k.color} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}
+              >
+                <k.icon className="size-4.5" />
+              </div>
+            </div>
+            <div className="mt-4 text-2xl font-bold font-display tracking-tight text-foreground">
               {isLoading ? "…" : k.value}
             </div>
-            <div className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1 font-medium">
+            <div className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1.5 font-semibold">
               {k.label}
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Revenue trend (large) + Active jobs by stage */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="glass-panel p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold flex items-center gap-2">
-              <TrendingUp className="size-4 text-success" /> Revenue Trend · Last 30 Days
-            </h2>
-            <div className="text-xs text-muted-foreground font-mono">
+      {/* Primary Graphs Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="glass-panel p-5.5 lg:col-span-2 border border-white/5 bg-card/15 rounded-2xl relative overflow-hidden">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
+                <TrendingUp className="size-4.5 text-success" /> Revenue Trend
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Quotes approved over the last 30 days
+              </p>
+            </div>
+            <div className="text-xs font-mono font-bold bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-lg">
               {inr(stats?.trend.reduce((s, x) => s + x.revenue, 0) ?? 0)} total
             </div>
           </div>
@@ -305,50 +325,69 @@ function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.trend ?? []}>
                 <defs>
-                  <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={CHART_HEX[0]} stopOpacity={0.5} />
-                    <stop offset="95%" stopColor={CHART_HEX[0]} stopOpacity={0} />
+                  <linearGradient id="revenueGlow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(255,255,255,0.03)"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                  tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
                   interval={4}
+                  axisLine={false}
+                  tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                  tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
                   tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
+                  axisLine={false}
+                  tickLine={false}
+                  width={35}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "hsl(var(--background))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 6,
-                    fontSize: 12,
+                    background: "rgba(10,12,22,0.9)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 12,
+                    fontSize: 11,
+                    backdropFilter: "blur(12px)",
                   }}
-                  formatter={(value: string | number | boolean) => [inr(Number(value)), "Revenue"]}
+                  labelClassName="text-muted-foreground font-mono"
+                  formatter={(value: string | number | boolean) => [
+                    inr(Number(value)),
+                    "Approved Revenue",
+                  ]}
                 />
                 <Area
                   type="monotone"
                   dataKey="revenue"
-                  stroke={CHART_HEX[0]}
-                  fill="url(#rev)"
-                  strokeWidth={2}
+                  stroke="var(--primary)"
+                  fill="url(#revenueGlow)"
+                  strokeWidth={2.5}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="glass-panel p-5">
-          <h2 className="font-display font-semibold mb-4 flex items-center gap-2">
-            <Factory className="size-4 text-chart-5" /> Active Jobs by Stage
-          </h2>
-          <div className="h-72">
+        {/* Pie Distribution */}
+        <div className="glass-panel p-5.5 border border-white/5 bg-card/15 rounded-2xl flex flex-col justify-between">
+          <div>
+            <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
+              <Factory className="size-4.5 text-primary" /> Active Job Stages
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Active items currently in queue</p>
+          </div>
+
+          <div className="h-56 relative flex items-center justify-center my-2">
             {(stats?.activeStageDist?.length ?? 0) === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground text-center">
-                No active jobs in production
+              <div className="text-xs text-muted-foreground text-center">
+                No active jobs in production.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -359,77 +398,105 @@ function Dashboard() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={2}
+                    innerRadius={60}
+                    outerRadius={85}
+                    paddingAngle={3}
                   >
                     {stats?.activeStageDist.map((_, i) => (
-                      <Cell key={i} fill={CHART_HEX[i % CHART_HEX.length]} />
+                      <Cell
+                        key={i}
+                        fill={CHART_HEX[i % CHART_HEX.length]}
+                        stroke="rgba(0,0,0,0.4)"
+                        strokeWidth={1.5}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "hsl(var(--background))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 6,
-                      fontSize: 12,
+                      background: "rgba(10,12,22,0.9)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 10,
+                      fontSize: 11,
+                      backdropFilter: "blur(12px)",
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-1 mt-3 max-h-24 overflow-y-auto pr-1">
+
+          <div className="grid grid-cols-2 gap-2 max-h-24 overflow-y-auto pr-1">
             {stats?.activeStageDist.map((s, i) => (
-              <div key={s.name} className="flex items-center gap-2 text-xs">
+              <div
+                key={s.name}
+                className="flex items-center gap-2 text-[10px] bg-white/[0.02] p-1.5 rounded-lg border border-white/[0.03]"
+              >
                 <span
                   className="size-2 rounded-full shrink-0"
                   style={{ background: CHART_HEX[i % CHART_HEX.length] }}
                 />
-                <span className="text-muted-foreground truncate flex-1">{s.name}</span>
-                <span className="font-mono text-foreground font-semibold">{s.value}</span>
+                <span className="text-muted-foreground truncate flex-1 font-medium">{s.name}</span>
+                <span className="font-mono text-foreground font-bold">{s.value}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Production stage load */}
-      <div className="glass-panel p-5 hover-lift border-border/80">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-semibold flex items-center gap-2 text-foreground">
-            <Factory className="size-4 text-warning" /> Production Stage Load
-          </h2>
-          <Link to="/jobs" className="text-xs text-primary hover:underline font-medium">
-            Open Kanban →
+      {/* Full-width stage load */}
+      <div className="glass-panel p-5.5 border border-white/5 bg-card/15 rounded-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
+              <Activity className="size-4.5 text-warning" /> Production Load by Stage
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Current queue sizes from design to dispatch
+            </p>
+          </div>
+          <Link
+            to="/jobs"
+            className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 bg-primary/5 hover:bg-primary/10 border border-primary/10 px-3 py-1.5 rounded-xl transition-colors"
+          >
+            Open Kanban Board <ArrowUpRight className="size-3.5" />
           </Link>
         </div>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={stats?.stageLoad ?? []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(255,255,255,0.03)"
+                vertical={false}
+              />
               <XAxis
                 dataKey="stage"
-                tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
-                angle={-15}
+                tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
+                angle={-12}
                 textAnchor="end"
                 height={50}
                 interval={0}
+                axisLine={false}
+                tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
                 allowDecimals={false}
+                axisLine={false}
+                tickLine={false}
+                width={20}
               />
               <Tooltip
                 contentStyle={{
-                  background: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 8,
-                  fontSize: 12,
+                  background: "rgba(10,12,22,0.9)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 12,
+                  fontSize: 11,
+                  backdropFilter: "blur(12px)",
                 }}
               />
               <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]}>
-                {stats?.stageLoad.map((entry, i) => (
+                {stats?.stageLoad.map((_, i) => (
                   <Cell key={i} fill={CHART_HEX[i % CHART_HEX.length]} />
                 ))}
               </Bar>
@@ -438,57 +505,75 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Recent production jobs + Upcoming production deadlines */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="glass-panel p-5 lg:col-span-2 hover-lift border-border/80">
+      {/* Bottom Lists: Recent Jobs + Upcoming Deadlines */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="glass-panel p-5.5 lg:col-span-2 border border-white/5 bg-card/15 rounded-2xl">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold flex items-center gap-2 text-foreground">
-              <Activity className="size-4 text-primary" /> Recent Production Jobs
-            </h2>
-            <Link to="/jobs" className="text-xs text-primary hover:underline font-medium">
-              View Kanban →
+            <div>
+              <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
+                <Factory className="size-4.5 text-primary" /> Recent Production Jobs
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Latest jobs queued in the production pipeline
+              </p>
+            </div>
+            <Link
+              to="/jobs"
+              className="text-xs text-muted-foreground hover:text-foreground font-semibold"
+            >
+              Manage all →
             </Link>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {isLoading ? (
-              <div className="text-sm text-muted-foreground text-center py-6">
-                Loading recent jobs...
+              <div className="text-sm text-muted-foreground text-center py-8">
+                Loading production logs...
               </div>
             ) : (stats?.recentJobsList?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                No jobs in production yet.{" "}
-                <Link to="/jobs" className="text-primary font-medium">
-                  Add the first one →
+              <p className="text-sm text-muted-foreground text-center py-8">
+                No jobs in production.{" "}
+                <Link to="/jobs" className="text-primary font-semibold">
+                  Queue first job →
                 </Link>
               </p>
             ) : (
               stats?.recentJobsList.map((job: DashboardJob) => (
                 <div
                   key={job.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-background/25 hover:bg-accent/30 transition-all border border-border/40 hover:translate-x-0.5"
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-[#090b14]/50 hover:bg-white/[0.03] transition-all border border-white/[0.03] hover:border-white/[0.06]"
                 >
-                  <div className="min-w-0 flex-1 mr-3">
-                    <div className="font-medium text-sm text-foreground truncate">
-                      {job.title}{" "}
-                      <span className="text-muted-foreground text-xs font-normal">
-                        · {job.customers?.company_name || "—"}
-                      </span>
+                  <div className="min-w-0 flex-1 mr-4">
+                    <div className="font-semibold text-sm text-foreground truncate">
+                      {job.title}
                     </div>
-                    <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                      {job.job_number} · Qty {job.quantity}{" "}
-                      {job.material ? `· ${job.material}` : ""}
+                    <div className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="font-mono text-foreground bg-white/[0.04] px-1.5 py-0.5 rounded">
+                        {job.job_number}
+                      </span>
+                      <span>·</span>
+                      <span className="text-primary">
+                        {job.customers?.company_name || "Direct Account"}
+                      </span>
+                      {job.material && (
+                        <>
+                          <span>·</span>
+                          <span>{job.material}</span>
+                        </>
+                      )}
+                      <span>·</span>
+                      <span>Qty {job.quantity}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {job.value > 0 && (
-                      <span className="text-xs font-mono font-semibold text-foreground">
+                      <span className="text-xs font-mono font-bold text-foreground">
                         {inr(job.value)}
                       </span>
                     )}
                     <span
-                      className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border font-medium ${STAGE_TONE[job.stage as JobStage] || "border-border bg-muted"}`}
+                      className={`text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-lg border font-bold ${STAGE_TONE[job.stage] || "border-border"}`}
                     >
-                      {JOB_STAGE_LABELS[job.stage as JobStage]}
+                      {JOB_STAGE_LABELS[job.stage]}
                     </span>
                   </div>
                 </div>
@@ -497,16 +582,23 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="glass-panel p-5 hover-lift border-border/80">
-          <h2 className="font-display font-semibold flex items-center gap-2 mb-4 text-foreground">
-            <Clock className="size-4 text-warning" /> Upcoming Deadlines
-          </h2>
+        <div className="glass-panel p-5.5 border border-white/5 bg-card/15 rounded-2xl">
+          <div className="mb-4">
+            <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
+              <Clock className="size-4.5 text-warning" /> Critical Deadlines
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Production schedules needing close attention
+            </p>
+          </div>
           {isLoading ? (
-            <div className="text-sm text-muted-foreground text-center py-6">
-              Loading deadlines...
+            <div className="text-sm text-muted-foreground text-center py-8">
+              Loading schedules...
             </div>
           ) : (stats?.upcomingDeadlines?.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">No upcoming deadlines.</p>
+            <p className="text-sm text-muted-foreground text-center py-8 text-muted-foreground/75">
+              All active job deadlines are clear.
+            </p>
           ) : (
             <div className="space-y-3">
               {stats?.upcomingDeadlines.map((job: DashboardJob) => {
@@ -514,39 +606,39 @@ function Dashboard() {
                 return (
                   <div
                     key={job.id}
-                    className="p-3 rounded-lg bg-background/25 border border-border/40 hover:bg-accent/10 transition-colors"
+                    className="p-3.5 rounded-xl bg-[#090b14]/50 border border-white/[0.03] hover:border-white/[0.06] transition-colors"
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-3">
                       <div
-                        className="font-medium text-xs text-foreground truncate max-w-[150px]"
+                        className="font-semibold text-xs text-foreground truncate max-w-[150px]"
                         title={job.title}
                       >
                         {job.title}
                       </div>
                       <span
-                        className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded border font-medium ${STAGE_TONE[job.stage as JobStage] || "border-border"}`}
+                        className={`text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-lg border font-bold ${STAGE_TONE[job.stage] || "border-border"}`}
                       >
-                        {JOB_STAGE_LABELS[job.stage as JobStage]}
+                        {JOB_STAGE_LABELS[job.stage]}
                       </span>
                     </div>
                     <div className="text-[10px] text-muted-foreground truncate mt-1">
-                      {job.customers?.company_name || "—"}
+                      {job.customers?.company_name || "Direct Account"}
                     </div>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/[0.04]">
                       <span className="text-[9px] font-mono text-muted-foreground">
                         {job.job_number}
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium border ${
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold border ${
                           overdue
-                            ? "bg-destructive/15 text-destructive border-destructive/25"
-                            : "bg-secondary/60 text-muted-foreground border-border/50"
+                            ? "bg-destructive/10 text-destructive border-destructive/20"
+                            : "bg-white/[0.02] text-muted-foreground border-white/[0.05]"
                         }`}
                       >
                         {overdue ? (
-                          <AlertTriangle className="size-2.5" />
+                          <AlertTriangle className="size-3" />
                         ) : (
-                          <Calendar className="size-2.5" />
+                          <Calendar className="size-3" />
                         )}
                         {fmtDate(job.deadline)}
                       </span>

@@ -1,20 +1,26 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, UserPlus, FileText, Factory, Users, Keyboard, X } from "lucide-react";
+import { Zap, FileText, Factory, Users, Keyboard, X, Calculator } from "lucide-react";
 import { toast } from "sonner";
 
 const ACTIONS = [
-  { to: "/leads", label: "Leads (Alt + L)", icon: UserPlus, key: "l", color: "text-primary" },
+  { to: "/customers", label: "Customers (Alt + C)", icon: Users, key: "c", color: "text-success" },
   {
     to: "/quotations/new",
     label: "New Quote (Alt + Q)",
     icon: FileText,
     key: "q",
-    color: "text-chart-5",
+    color: "text-primary",
   },
   { to: "/jobs", label: "Production (Alt + J)", icon: Factory, key: "j", color: "text-warning" },
-  { to: "/customers", label: "Customers (Alt + C)", icon: Users, key: "c", color: "text-success" },
+  {
+    to: "/calculators",
+    label: "Calculators (Alt + K)",
+    icon: Calculator,
+    key: "k",
+    color: "text-chart-5",
+  },
 ] as const;
 
 export function QuickDock() {
@@ -41,8 +47,8 @@ export function QuickDock() {
 
     // Show a quick tooltip toast once on mount to tell the user about the hotkeys
     const timer = setTimeout(() => {
-      toast("⚡ Pro Tip: Press Alt + [Q, L, J, C] for quick actions!", {
-        description: "Alt+Q: New Quote | Alt+L: Leads | Alt+J: Jobs | Alt+C: Customers",
+      toast("⚡ Pro Tip: Press Alt + [Q, C, J, K] for quick actions!", {
+        description: "Alt+Q: New Quote | Alt+C: Customers | Alt+J: Jobs | Alt+K: Calculators",
         duration: 8000,
         action: {
           label: "Dismiss",
@@ -61,7 +67,7 @@ export function QuickDock() {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
       <AnimatePresence>
         {open && (
-          <div className="flex flex-col items-end gap-2 mb-2 pointer-events-auto">
+          <div className="flex flex-col items-end gap-2.5 mb-2 pointer-events-auto">
             {ACTIONS.map((action, i) => (
               <motion.button
                 key={action.to}
@@ -74,13 +80,13 @@ export function QuickDock() {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   navigate({ to: action.to } as any);
                 }}
-                className="flex items-center gap-3 px-3.5 py-2 rounded-lg glass-panel-elevated hover:bg-accent/40 text-foreground hover:translate-x-[-4px] transition-all cursor-pointer border border-border/80"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl glass-panel-elevated hover:bg-white/5 text-foreground hover:-translate-x-1.5 transition-all cursor-pointer border border-white/5 shadow-2xl"
               >
-                <span className="text-xs font-medium tracking-wide font-display">
+                <span className="text-xs font-semibold tracking-wide font-display text-muted-foreground hover:text-foreground">
                   {action.label}
                 </span>
                 <div
-                  className={`size-8 rounded-md bg-secondary/50 flex items-center justify-center border border-border/60 ${action.color}`}
+                  className={`size-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5 ${action.color}`}
                 >
                   <action.icon className="size-4" />
                 </div>
@@ -97,10 +103,10 @@ export function QuickDock() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="px-3 py-1.5 rounded-md glass-panel border border-border text-[11px] text-muted-foreground mr-1 flex items-center gap-1.5 font-display"
+              className="px-3.5 py-2 rounded-xl glass-panel border border-white/5 text-[11px] font-medium text-muted-foreground mr-1.5 flex items-center gap-2 font-display"
             >
               <Keyboard className="size-3.5 text-primary" />
-              <span>Alt + Q / L / J / C</span>
+              <span>Alt + Q / C / J / K</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -109,10 +115,10 @@ export function QuickDock() {
           onClick={() => setOpen(!open)}
           onMouseEnter={() => setShowTips(true)}
           onMouseLeave={() => setShowTips(false)}
-          className={`size-12 rounded-full flex items-center justify-center cursor-pointer border shadow-[var(--shadow-elevated)] transition-all ${
+          className={`size-12.5 rounded-full flex items-center justify-center cursor-pointer border shadow-[var(--shadow-elevated)] transition-all ${
             open
-              ? "bg-destructive border-destructive-foreground/20 text-destructive-foreground rotate-90"
-              : "gradient-industrial border-primary-foreground/10 text-primary-foreground hover:scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow"
+              ? "bg-destructive border-white/10 text-destructive-foreground rotate-90"
+              : "gradient-industrial border-white/5 text-primary-foreground hover:scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow"
           }`}
           whileTap={{ scale: 0.95 }}
         >
