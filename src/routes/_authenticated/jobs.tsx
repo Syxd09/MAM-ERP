@@ -29,7 +29,24 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { JOB_STAGES, JOB_STAGE_LABELS, fmtDate, inr, type JobStage } from "@/lib/erp";
-import { Factory, Plus, Calendar, AlertCircle, Search, Trash2 } from "lucide-react";
+import {
+  Factory,
+  Plus,
+  Calendar,
+  AlertCircle,
+  Search,
+  Trash2,
+  FileText,
+  Cpu,
+  Zap,
+  ChevronsDown,
+  Flame,
+  Palette,
+  ShieldCheck,
+  Truck,
+  CheckCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
@@ -57,6 +74,42 @@ const STAGE_TONE: Record<JobStage, string> = {
   quality_check: "border-chart-2/30 bg-chart-2/5",
   dispatch: "border-primary/30 bg-primary/5",
   completed: "border-success/30 bg-success/5",
+};
+
+const STAGE_ICONS: Record<JobStage, LucideIcon> = {
+  design_received: FileText,
+  programming: Cpu,
+  laser_cutting: Zap,
+  bending: ChevronsDown,
+  welding: Flame,
+  powder_coating: Palette,
+  quality_check: ShieldCheck,
+  dispatch: Truck,
+  completed: CheckCircle,
+};
+
+const STAGE_COLORS: Record<JobStage, string> = {
+  design_received: "bg-chart-5/10 text-chart-5",
+  programming: "bg-chart-3/10 text-chart-3",
+  laser_cutting: "bg-primary/10 text-primary",
+  bending: "bg-warning/10 text-warning",
+  welding: "bg-destructive/10 text-destructive",
+  powder_coating: "bg-chart-4/10 text-chart-4",
+  quality_check: "bg-chart-2/10 text-chart-2",
+  dispatch: "bg-primary/10 text-primary",
+  completed: "bg-success/10 text-success",
+};
+
+const STAGE_SHORT_LABELS: Record<JobStage, string> = {
+  design_received: "Design",
+  programming: "Program",
+  laser_cutting: "Laser Cut",
+  bending: "Bending",
+  welding: "Welding",
+  powder_coating: "Coating",
+  quality_check: "Quality",
+  dispatch: "Dispatch",
+  completed: "Completed",
 };
 
 interface CustomerMin {
@@ -149,6 +202,62 @@ function JobsPage() {
           </p>
         </div>
         <NewJobDialog onSaved={() => qc.invalidateQueries({ queryKey: ["jobs"] })} />
+      </div>
+
+      {/* Daily Production Routine Summary Strip */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold font-mono">
+            Daily Production Routine Snapshot
+          </h2>
+          <span className="text-[10px] font-medium text-muted-foreground/50">
+            Click stage to scroll to column
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-9 gap-3">
+          {JOB_STAGES.map((stage) => {
+            const Icon = STAGE_ICONS[stage];
+            const stageJobs = jobs.filter((j) => j.stage === stage);
+            const totalValue = stageJobs.reduce((sum, job) => sum + (job.value || 0), 0);
+
+            return (
+              <motion.button
+                key={stage}
+                whileHover={{ y: -2 }}
+                onClick={() => {
+                  const el = document.getElementById(`column-${stage}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+
+                    // Add a temporary glow highlight effect to the column
+                    el.classList.add("ring-2", "ring-primary/40");
+                    setTimeout(() => {
+                      el.classList.remove("ring-2", "ring-primary/40");
+                    }, 1200);
+                  }
+                }}
+                className="glass-panel p-3 border border-white/5 bg-card/10 hover:bg-card/25 transition-all rounded-xl text-left cursor-pointer flex items-center gap-3 w-full"
+              >
+                <div
+                  className={`size-8 rounded-lg shrink-0 ${STAGE_COLORS[stage]} flex items-center justify-center`}
+                >
+                  <Icon className="size-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider truncate">
+                    {STAGE_SHORT_LABELS[stage]}
+                  </div>
+                  <div className="text-xs font-bold text-foreground mt-0.5">
+                    {stageJobs.length} {stageJobs.length === 1 ? "job" : "jobs"}
+                  </div>
+                  <div className="text-[9px] font-mono text-muted-foreground/75 mt-0.5 truncate">
+                    {totalValue > 0 ? inr(totalValue) : "—"}
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Filter panel */}
@@ -252,6 +361,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
+      id={`column-${stage}`}
       className={`shrink-0 w-76 glass-panel p-4 transition-all border border-white/5 rounded-2xl bg-card/10 backdrop-blur-md ${
         isOver ? "ring-2 ring-primary/30 bg-primary/[0.03] border-primary/20 scale-[0.98]" : ""
       }`}
