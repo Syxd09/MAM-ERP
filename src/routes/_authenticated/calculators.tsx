@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { inr } from "@/lib/erp";
-import { Calculator, Flame, Wrench, Zap, Scissors, Paintbrush, Sparkles } from "lucide-react";
+import { Calculator, Flame, Wrench, Zap, Paintbrush, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/calculators")({
   head: () => ({ meta: [{ title: "Cost Calculators — MAM ERP" }] }),
@@ -42,16 +42,15 @@ const MATERIALS: Record<string, { label: string; density: number; rate: number }
 function CalculatorsPage() {
   return (
     <div className="space-y-6">
-      <div className="panel-elevated p-6 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-industrial opacity-10" />
+      <div className="panel p-5 relative overflow-hidden bg-card border border-border rounded-sm shadow-sm">
         <div className="relative">
-          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight flex items-center gap-3">
-            <span className="size-11 rounded-xl gradient-industrial flex items-center justify-center shadow-lg">
-              <Calculator className="size-6 text-primary-foreground" />
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
+            <span className="size-9 rounded-sm bg-primary flex items-center justify-center">
+              <Calculator className="size-4.5 text-primary-foreground" />
             </span>
             Fabrication Cost Calculators
           </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+          <p className="text-xs text-muted-foreground mt-2 max-w-2xl">
             Pre-loaded with <span className="font-semibold text-foreground">17 materials</span> ·
             live cost breakdown across material, machine, labour, consumables & margin.
           </p>
@@ -69,11 +68,8 @@ function CalculatorsPage() {
           <TabsTrigger value="welding">
             <Flame className="size-4 mr-1.5" /> Welding
           </TabsTrigger>
-          <TabsTrigger value="engraving">
-            <Sparkles className="size-4 mr-1.5" /> Engraving
-          </TabsTrigger>
-          <TabsTrigger value="shearing">
-            <Scissors className="size-4 mr-1.5" /> Shearing
+          <TabsTrigger value="laser_marking">
+            <Sparkles className="size-4 mr-1.5" /> Laser Marking
           </TabsTrigger>
           <TabsTrigger value="powder">
             <Paintbrush className="size-4 mr-1.5" /> Powder Coating
@@ -88,11 +84,8 @@ function CalculatorsPage() {
         <TabsContent value="welding">
           <WeldingCalc />
         </TabsContent>
-        <TabsContent value="engraving">
-          <EngravingCalc />
-        </TabsContent>
-        <TabsContent value="shearing">
-          <ShearingCalc />
+        <TabsContent value="laser_marking">
+          <LaserMarkingCalc />
         </TabsContent>
         <TabsContent value="powder">
           <PowderCoatCalc />
@@ -164,15 +157,15 @@ function ResultRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between py-2.5 border-b border-border/40 ${bold ? "border-t-2 border-primary pt-4 mt-3 border-b-0" : ""}`}
+      className={`flex items-center justify-between py-2 border-b border-border/60 ${bold ? "border-t-2 border-primary pt-3 mt-3 border-b-0" : ""}`}
     >
       <span
-        className={`text-sm ${bold ? "font-display font-bold uppercase tracking-wider" : "text-muted-foreground"}`}
+        className={`text-xs ${bold ? "font-bold uppercase tracking-wider" : "text-muted-foreground"}`}
       >
         {label}
       </span>
       <span
-        className={`font-mono ${bold ? "text-xl font-bold text-gradient" : accent ? "text-primary font-semibold" : ""}`}
+        className={`font-mono ${bold ? "text-lg font-bold text-foreground" : accent ? "text-primary font-semibold" : "text-foreground"}`}
       >
         {value}
       </span>
@@ -281,12 +274,6 @@ function LaserCalc() {
             set={(v) => setS({ ...s, processTime: v })}
           />
           <NumberField
-            label="Machine rate"
-            unit="₹/hr"
-            value={s.machineRate}
-            set={(v) => setS({ ...s, machineRate: v })}
-          />
-          <NumberField
             label="Labour rate"
             unit="₹/hr"
             value={s.labourRate}
@@ -321,19 +308,50 @@ function BendingCalc() {
   const [s, setS] = useState({
     material: "MS",
     bends: 10,
-    thickness: 3,
-    machineMin: 5,
-    machineRate: 1200,
-    labourRate: 250,
+    thickness: 1,
+    length: 1000,
     materialCost: 0,
     marginPct: 25,
   });
   const result = useMemo(() => {
-    const machineCost = (s.machineMin / 60) * s.machineRate * s.bends;
-    const labourCost = (s.machineMin / 60) * s.labourRate * s.bends;
-    const total = s.materialCost + machineCost + labourCost;
+    const isSS = s.material.startsWith("SS") || s.material === "BRASS" || s.material === "COPPER" || s.material === "TITANIUM";
+    let baseRate = 6; // default MS/AL/GI 1mm
+    if (isSS) {
+      if (s.thickness <= 1) {
+        baseRate = 10;
+      } else if (s.thickness <= 2) {
+        baseRate = 13;
+      } else {
+        baseRate = 13 + (s.thickness - 2) * 5;
+      }
+    } else {
+      if (s.thickness <= 1) {
+        baseRate = 6;
+      } else if (s.thickness <= 2) {
+        baseRate = 8;
+      } else {
+        baseRate = 8 + (s.thickness - 2) * 3;
+      }
+    }
+
+    let premium = 0;
+    if (s.length > 2000) {
+      if (s.length <= 3000) premium = 5;
+      else if (s.length <= 4000) premium = 7;
+      else premium = 10;
+    }
+
+    const ratePerBend = baseRate + premium;
+    const bendingCost = ratePerBend * s.bends;
+    const total = s.materialCost + bendingCost;
     const profit = (total * s.marginPct) / 100;
-    return { machineCost, labourCost, total, profit, price: total + profit };
+    return {
+      ratePerBend,
+      bendingCost,
+      total,
+      profit,
+      price: total + profit
+    };
   }, [s]);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -351,22 +369,10 @@ function BendingCalc() {
           set={(v) => setS({ ...s, thickness: v })}
         />
         <NumberField
-          label="Time per bend"
-          unit="min"
-          value={s.machineMin}
-          set={(v) => setS({ ...s, machineMin: v })}
-        />
-        <NumberField
-          label="Machine rate"
-          unit="₹/hr"
-          value={s.machineRate}
-          set={(v) => setS({ ...s, machineRate: v })}
-        />
-        <NumberField
-          label="Labour rate"
-          unit="₹/hr"
-          value={s.labourRate}
-          set={(v) => setS({ ...s, labourRate: v })}
+          label="Length"
+          unit="mm"
+          value={s.length}
+          set={(v) => setS({ ...s, length: v })}
         />
         <NumberField
           label="Material cost"
@@ -385,8 +391,9 @@ function BendingCalc() {
         <h3 className="font-display font-semibold mb-3 flex items-center gap-2">
           <Wrench className="size-4 text-primary" /> Cost Breakdown
         </h3>
-        <ResultRow label="Machine cost" value={inr(result.machineCost)} />
-        <ResultRow label="Labour cost" value={inr(result.labourCost)} />
+        <ResultRow label="Rate per bend" value={inr(result.ratePerBend)} />
+        <ResultRow label="Total bending cost" value={inr(result.bendingCost)} accent />
+        <ResultRow label="Material cost" value={inr(s.materialCost)} />
         <ResultRow label="Total cost" value={inr(result.total)} />
         <ResultRow label={`Profit (${s.marginPct}%)`} value={inr(result.profit)} accent />
         <ResultRow label="Final price" value={inr(result.price)} bold />
@@ -501,7 +508,7 @@ function WeldingCalc() {
   );
 }
 
-function EngravingCalc() {
+function LaserMarkingCalc() {
   const [s, setS] = useState({
     material: "SS_304",
     areaCm2: 50,
@@ -526,7 +533,7 @@ function EngravingCalc() {
       <div className="panel p-5 lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
         <MaterialSelect value={s.material} onChange={(v) => setS({ ...s, material: v })} />
         <NumberField
-          label="Engraving area"
+          label="Marking area"
           unit="cm²"
           value={s.areaCm2}
           set={(v) => setS({ ...s, areaCm2: v })}
@@ -577,82 +584,6 @@ function EngravingCalc() {
         <ResultRow label="Machine cost" value={inr(result.machineCost)} />
         <ResultRow label="Labour cost" value={inr(result.labourCost)} />
         <ResultRow label="Setup cost" value={inr(s.setupCost)} />
-        <ResultRow label="Total cost" value={inr(result.total)} />
-        <ResultRow label={`Profit (${s.marginPct}%)`} value={inr(result.profit)} accent />
-        <ResultRow label="Final price" value={inr(result.price)} bold />
-      </div>
-    </div>
-  );
-}
-
-function ShearingCalc() {
-  const [s, setS] = useState({
-    material: "MS",
-    thickness: 3,
-    cuts: 20,
-    secPerCut: 8,
-    machineRate: 600,
-    labourRate: 200,
-    materialCost: 0,
-    marginPct: 20,
-  });
-  const result = useMemo(() => {
-    const totalHr = (s.cuts * s.secPerCut) / 3600;
-    const machineCost = totalHr * s.machineRate;
-    const labourCost = totalHr * s.labourRate;
-    const total = s.materialCost + machineCost + labourCost;
-    const profit = (total * s.marginPct) / 100;
-    return { totalHr, machineCost, labourCost, total, profit, price: total + profit };
-  }, [s]);
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div className="panel p-5 lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
-        <MaterialSelect value={s.material} onChange={(v) => setS({ ...s, material: v })} />
-        <NumberField
-          label="Thickness"
-          unit="mm"
-          value={s.thickness}
-          set={(v) => setS({ ...s, thickness: v })}
-        />
-        <NumberField label="Number of cuts" value={s.cuts} set={(v) => setS({ ...s, cuts: v })} />
-        <NumberField
-          label="Time per cut"
-          unit="sec"
-          value={s.secPerCut}
-          set={(v) => setS({ ...s, secPerCut: v })}
-        />
-        <NumberField
-          label="Machine rate"
-          unit="₹/hr"
-          value={s.machineRate}
-          set={(v) => setS({ ...s, machineRate: v })}
-        />
-        <NumberField
-          label="Labour rate"
-          unit="₹/hr"
-          value={s.labourRate}
-          set={(v) => setS({ ...s, labourRate: v })}
-        />
-        <NumberField
-          label="Material cost"
-          unit="₹"
-          value={s.materialCost}
-          set={(v) => setS({ ...s, materialCost: v })}
-        />
-        <NumberField
-          label="Profit margin"
-          unit="%"
-          value={s.marginPct}
-          set={(v) => setS({ ...s, marginPct: v })}
-        />
-      </div>
-      <div className="panel-elevated p-5 self-start">
-        <h3 className="font-display font-semibold mb-3 flex items-center gap-2">
-          <Scissors className="size-4 text-primary" /> Cost Breakdown
-        </h3>
-        <ResultRow label="Total time" value={`${(result.totalHr * 60).toFixed(1)} min`} />
-        <ResultRow label="Machine cost" value={inr(result.machineCost)} />
-        <ResultRow label="Labour cost" value={inr(result.labourCost)} />
         <ResultRow label="Total cost" value={inr(result.total)} />
         <ResultRow label={`Profit (${s.marginPct}%)`} value={inr(result.profit)} accent />
         <ResultRow label="Final price" value={inr(result.price)} bold />

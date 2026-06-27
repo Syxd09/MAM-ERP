@@ -205,11 +205,11 @@ export function CommandTrigger({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="relative flex-1 max-w-md flex items-center gap-2 h-10 px-3.5 rounded-xl border border-border bg-background/40 text-sm text-muted-foreground hover:bg-background/80 hover:border-primary/30 transition-all text-left cursor-pointer"
+      className="relative flex-1 max-w-md flex items-center gap-2 h-9 px-3 rounded-sm border border-border bg-background text-xs text-muted-foreground hover:bg-muted transition-colors text-left cursor-pointer"
     >
-      <Search className="size-4" />
-      <span className="flex-1 text-xs">Search or jump to…</span>
-      <kbd className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border/80 bg-muted/40 px-2 py-0.5 text-[9px] font-mono leading-none">
+      <Search className="size-3.5" />
+      <span className="flex-1">Search or jump to…</span>
+      <kbd className="hidden sm:inline-flex items-center gap-1 rounded-sm border border-border bg-card px-1.5 py-0.5 text-[9px] font-mono leading-none">
         ⌘K
       </kbd>
     </button>

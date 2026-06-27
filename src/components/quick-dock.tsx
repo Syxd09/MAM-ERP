@@ -5,21 +5,21 @@ import { Zap, FileText, Factory, Users, Keyboard, X, Calculator } from "lucide-r
 import { toast } from "sonner";
 
 const ACTIONS = [
-  { to: "/customers", label: "Customers (Alt + C)", icon: Users, key: "c", color: "text-success" },
+  { to: "/customers", label: "Customers (Alt + C)", icon: Users, key: "c", color: "text-green-500" },
   {
     to: "/quotations/new",
     label: "New Quote (Alt + Q)",
     icon: FileText,
     key: "q",
-    color: "text-primary",
+    color: "text-blue-500",
   },
-  { to: "/jobs", label: "Production (Alt + J)", icon: Factory, key: "j", color: "text-warning" },
+  { to: "/jobs", label: "Production (Alt + J)", icon: Factory, key: "j", color: "text-amber-500" },
   {
     to: "/calculators",
     label: "Calculators (Alt + K)",
     icon: Calculator,
     key: "k",
-    color: "text-chart-5",
+    color: "text-purple-500",
   },
 ] as const;
 
@@ -30,13 +30,12 @@ export function QuickDock() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Look for Alt Key combinations
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const char = e.key.toLowerCase();
         const action = ACTIONS.find((a) => a.key === char);
         if (action) {
           e.preventDefault();
-          toast.info(`Shortcut: Redirecting to ${action.label.split(" (")[0]}...`);
+          toast.info(`Redirecting to ${action.label.split(" (")[0]}...`);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           navigate({ to: action.to } as any);
         }
@@ -45,9 +44,8 @@ export function QuickDock() {
 
     window.addEventListener("keydown", handleKeyDown);
 
-    // Show a quick tooltip toast once on mount to tell the user about the hotkeys
     const timer = setTimeout(() => {
-      toast("⚡ Pro Tip: Press Alt + [Q, C, J, K] for quick actions!", {
+      toast("⚡ Shortcuts: Press Alt + [Q, C, J, K] for quick navigation!", {
         description: "Alt+Q: New Quote | Alt+C: Customers | Alt+J: Jobs | Alt+K: Calculators",
         duration: 8000,
         action: {
@@ -64,33 +62,29 @@ export function QuickDock() {
   }, [navigate]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 pointer-events-none font-sans">
       <AnimatePresence>
         {open && (
-          <div className="flex flex-col items-end gap-2.5 mb-2 pointer-events-auto">
-            {ACTIONS.map((action, i) => (
-              <motion.button
+          <div className="flex flex-col items-end gap-1.5 mb-1.5 pointer-events-auto">
+            {ACTIONS.map((action) => (
+              <button
                 key={action.to}
-                initial={{ opacity: 0, scale: 0.8, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: 15 }}
-                transition={{ delay: (ACTIONS.length - 1 - i) * 0.05, duration: 0.2 }}
                 onClick={() => {
                   setOpen(false);
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   navigate({ to: action.to } as any);
                 }}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl glass-panel-elevated hover:bg-white/5 text-foreground hover:-translate-x-1.5 transition-all cursor-pointer border border-white/5 shadow-2xl"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-sm bg-card border border-border hover:bg-muted text-foreground hover:-translate-x-1 transition-all cursor-pointer shadow-md"
               >
-                <span className="text-xs font-semibold tracking-wide font-display text-muted-foreground hover:text-foreground">
+                <span className="text-[11px] font-semibold text-muted-foreground hover:text-foreground">
                   {action.label}
                 </span>
                 <div
-                  className={`size-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5 ${action.color}`}
+                  className={`size-7 rounded-sm bg-background flex items-center justify-center border border-border ${action.color}`}
                 >
-                  <action.icon className="size-4" />
+                  <action.icon className="size-3.5" />
                 </div>
-              </motion.button>
+              </button>
             ))}
           </div>
         )}
@@ -99,31 +93,25 @@ export function QuickDock() {
       <div className="flex items-center gap-2 pointer-events-auto">
         <AnimatePresence>
           {showTips && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-3.5 py-2 rounded-xl glass-panel border border-white/5 text-[11px] font-medium text-muted-foreground mr-1.5 flex items-center gap-2 font-display"
-            >
+            <div className="px-3 py-1.5 rounded-sm bg-card border border-border text-[10px] font-bold text-muted-foreground mr-1 flex items-center gap-1.5">
               <Keyboard className="size-3.5 text-primary" />
               <span>Alt + Q / C / J / K</span>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
-        <motion.button
+        <button
           onClick={() => setOpen(!open)}
           onMouseEnter={() => setShowTips(true)}
           onMouseLeave={() => setShowTips(false)}
-          className={`size-12.5 rounded-full flex items-center justify-center cursor-pointer border shadow-[var(--shadow-elevated)] transition-all ${
+          className={`size-10 rounded-sm flex items-center justify-center cursor-pointer border shadow-md transition-all ${
             open
-              ? "bg-destructive border-white/10 text-destructive-foreground rotate-90"
-              : "gradient-industrial border-white/5 text-primary-foreground hover:scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow"
+              ? "bg-destructive border-border text-destructive-foreground"
+              : "bg-primary border-primary text-white hover:bg-primary/95"
           }`}
-          whileTap={{ scale: 0.95 }}
         >
-          {open ? <X className="size-5" /> : <Zap className="size-5" />}
-        </motion.button>
+          {open ? <X className="size-4.5" /> : <Zap className="size-4.5" />}
+        </button>
       </div>
     </div>
   );

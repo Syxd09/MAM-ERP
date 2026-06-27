@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { fmtDate, inr, QUOTATION_STATUSES } from "@/lib/erp";
-import { FileText, Plus, Download, Trash2 } from "lucide-react";
+import { FileText, Plus, Download, Trash2, Pencil } from "lucide-react";
 import { generateQuotationPDF } from "@/lib/quotation-pdf";
 import { toast } from "sonner";
 
@@ -29,6 +38,8 @@ const STATUS_TONE: Record<string, string> = {
 
 function QuotationsPage() {
   const qc = useQueryClient();
+  const [includeSealMap, setIncludeSealMap] = useState<Record<string, boolean>>({});
+
   const { data: quotations = [] } = useQuery({
     queryKey: ["quotations"],
     queryFn: async () => {
@@ -41,13 +52,19 @@ function QuotationsPage() {
     },
   });
 
-  async function downloadPDF(qid: string) {
+  async function downloadPDF(
+    qid: string,
+    pdfFormat: "standard" | "classic" = "standard",
+    copyType: "original" | "duplicate" | "transporter" = "original",
+    printSealOverride?: boolean
+  ) {
     const [{ data: q }, { data: items }] = await Promise.all([
       supabase.from("quotations").select("*").eq("id", qid).single(),
       supabase.from("quotation_items").select("*").eq("quotation_id", qid).order("position"),
     ]);
     if (!q) return;
-    generateQuotationPDF({ ...q, items: items || [] } as any);
+    const finalPrintSeal = printSealOverride !== undefined ? printSealOverride : q.print_seal;
+    generateQuotationPDF({ ...q, items: items || [], copy_type: copyType, pdf_format: pdfFormat, print_seal: finalPrintSeal } as any);
   }
 
   const updateStatus = useMutation({
@@ -144,10 +161,50 @@ function QuotationsPage() {
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {fmtDate(q.valid_until)}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button size="icon" variant="ghost" onClick={() => downloadPDF(q.id)}>
-                      <Download className="size-4" />
-                    </Button>
+                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost">
+                          <Download className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[195px]">
+                        <DropdownMenuCheckboxItem
+                          checked={includeSealMap[q.id] ?? !!q.print_seal}
+                          onCheckedChange={(checked) =>
+                            setIncludeSealMap({ ...includeSealMap, [q.id]: checked })
+                          }
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          Print Seal Stamp
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuSeparator />
+                        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                          Standard GST
+                        </div>
+                        <DropdownMenuItem onClick={() => downloadPDF(q.id, "standard", "original", includeSealMap[q.id] ?? !!q.print_seal)}>
+                          Original Copy
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadPDF(q.id, "standard", "duplicate", includeSealMap[q.id] ?? !!q.print_seal)}>
+                          Duplicate Copy
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadPDF(q.id, "standard", "transporter", includeSealMap[q.id] ?? !!q.print_seal)}>
+                          Transporter Copy
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                          Classic Simple
+                        </div>
+                        <DropdownMenuItem onClick={() => downloadPDF(q.id, "classic", "original", includeSealMap[q.id] ?? !!q.print_seal)}>
+                          Classic Quotation
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Link to="/quotations/$id" params={{ id: q.id }}>
+                      <Button size="icon" variant="ghost" title="Edit quotation">
+                        <Pencil className="size-4" />
+                      </Button>
+                    </Link>
                     <Button
                       size="icon"
                       variant="ghost"

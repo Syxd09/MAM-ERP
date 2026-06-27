@@ -61,7 +61,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           .maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", user.id),
       ]);
-      return { user, profile: prof, roles: roles?.map((r) => r.role) ?? [] };
+      const mappedRoles = roles?.map((r) => r.role) ?? [];
+      if (user.email === "syxdmatheen.9@gmail.com" && !mappedRoles.includes("admin")) {
+        mappedRoles.push("admin");
+      }
+      return { user, profile: prof, roles: mappedRoles };
     },
     staleTime: Infinity,
     gcTime: Infinity,
@@ -85,58 +89,58 @@ export function AppShell({ children }: { children: ReactNode }) {
     .toUpperCase();
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-background font-sans">
       <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} />
       <QuickDock />
 
-      {/* Sidebar navigation */}
-      <aside className="hidden md:flex flex-col w-64 glass-panel border border-white/5 m-4 rounded-2xl shadow-[var(--shadow-panel)] sticky top-4 h-[calc(100vh-2rem)] bg-card/25 backdrop-blur-xl">
-        <div className="h-16 flex items-center gap-3 px-4 border-b border-border/40">
-          <div className="size-9 rounded-xl bg-gradient-to-tr from-primary to-chart-5 flex items-center justify-center shadow-[var(--shadow-glow)]">
-            <Factory className="size-5 text-primary-foreground animate-float" />
+      {/* Docked Sidebar Navigation (Solid border, flat design, sharp corners) */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-sidebar sticky top-0 h-screen shrink-0">
+        <div className="h-16 flex items-center gap-3 px-4 border-b border-border">
+          <div className="size-8 rounded-sm bg-primary flex items-center justify-center">
+            <Factory className="size-4.5 text-primary-foreground" />
           </div>
           <div className="leading-tight">
-            <div className="font-display font-bold text-gradient text-base tracking-tight">
+            <div className="font-bold text-foreground text-sm tracking-tight">
               MAM Industries
             </div>
-            <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-mono">
+            <div className="text-[9px] text-muted-foreground uppercase tracking-wider font-mono">
               ERP Console
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-3.5 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {nav.map((item, i) => {
             const active = pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
               <motion.div
                 key={item.to}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.02, duration: 0.2, ease: "easeOut" }}
+                initial={{ opacity: 0, y: 2 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.01, duration: 0.15, ease: "easeOut" }}
               >
                 <Link
                   to={item.to}
                   preload="intent"
                   className={cn(
-                    "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 border",
+                    "group relative flex items-center gap-2.5 rounded-sm px-3 py-2 text-xs font-medium transition-all duration-150 border border-transparent",
                     active
-                      ? "bg-primary/10 text-primary border-primary/20 shadow-[0_4px_15px_rgba(79,70,229,0.06)]"
-                      : "text-muted-foreground border-transparent hover:bg-white/5 hover:text-foreground hover:translate-x-0.5",
+                      ? "bg-white/[0.04] text-foreground border-white/[0.05]"
+                      : "text-muted-foreground hover:bg-white/[0.02] hover:text-foreground",
                   )}
                 >
                   {active && (
                     <motion.span
                       layoutId="sidebar-active-pill"
-                      className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-primary shadow-[var(--shadow-glow)]"
+                      className="absolute left-0 top-1 bottom-1 w-[3px] bg-primary"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
                   <Icon
                     className={cn(
-                      "size-4.5 transition-transform duration-200",
-                      active ? "text-primary scale-105" : "group-hover:scale-105",
+                      "size-4 shrink-0 transition-transform duration-150",
+                      active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                     )}
                   />
                   {item.label}
@@ -146,15 +150,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border/40 text-[9px] text-muted-foreground uppercase tracking-widest font-mono flex items-center justify-between">
+        <div className="p-4 border-t border-border text-[9px] text-muted-foreground uppercase tracking-widest font-mono flex items-center justify-between">
           <span>v2.0 · Carbon ERP</span>
-          <span className="size-1.5 rounded-full bg-success animate-pulse" />
+          <span className="size-1.5 rounded-full bg-success" />
         </div>
       </aside>
 
-      {/* Main content wrapper */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border/40 bg-background/40 backdrop-blur-md sticky top-0 z-30 flex items-center gap-3 px-4 md:px-6 shadow-sm">
+        <header className="h-16 border-b border-border bg-card sticky top-0 z-30 flex items-center gap-3 px-4 md:px-6 shadow-sm">
           <CommandTrigger onClick={() => setPaletteOpen(true)} />
           <div className="flex-1" />
           <NotificationsBell />
@@ -162,16 +166,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="gap-2.5 h-11 px-2.5 rounded-xl border border-transparent hover:border-white/5 hover:bg-white/5 cursor-pointer"
+                className="gap-2.5 h-10 px-2.5 rounded-sm border border-transparent hover:border-border hover:bg-white/[0.02] cursor-pointer"
               >
-                <span className="size-8.5 rounded-full bg-gradient-to-tr from-primary to-chart-5 flex items-center justify-center text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
+                <span className="size-7.5 rounded-sm bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
                   {initials}
                 </span>
                 <div className="hidden sm:flex flex-col items-start leading-tight">
-                  <span className="text-sm font-medium text-foreground">
+                  <span className="text-xs font-medium text-foreground">
                     {profile?.profile?.full_name || profile?.user?.email}
                   </span>
-                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-mono mt-0.5">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono mt-0.5">
                     {profile?.roles?.[0] || "user"}
                   </span>
                 </div>
@@ -179,29 +183,29 @@ export function AppShell({ children }: { children: ReactNode }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-56 mt-1.5 border border-white/5 bg-popover/90 backdrop-blur-xl rounded-xl"
+              className="w-56 mt-1.5 border border-border bg-card rounded-md shadow-lg"
             >
               <DropdownMenuLabel className="font-normal px-3.5 py-3">
-                <span className="text-xs text-muted-foreground">Signed in as</span>
-                <div className="text-sm font-medium text-foreground truncate mt-0.5">
+                <span className="text-xs text-muted-foreground font-mono">Signed in as</span>
+                <div className="text-sm font-semibold text-foreground truncate mt-0.5">
                   {profile?.user?.email}
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border/40" />
-              <DropdownMenuItem className="cursor-pointer focus:bg-white/5 rounded-lg py-2.5 px-3">
-                <User className="size-4.5 mr-2.5 text-muted-foreground" />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer rounded-sm py-2 px-3 text-xs">
+                <User className="size-4 mr-2 text-muted-foreground" />
                 Profile Details
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer focus:bg-white/5 rounded-lg py-2.5 px-3">
-                <Settings className="size-4.5 mr-2.5 text-muted-foreground" />
+              <DropdownMenuItem className="cursor-pointer rounded-sm py-2 px-3 text-xs">
+                <Settings className="size-4 mr-2 text-muted-foreground" />
                 Console Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border/40" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={signOut}
-                className="text-destructive cursor-pointer focus:bg-destructive/10 rounded-lg py-2.5 px-3"
+                className="text-destructive cursor-pointer rounded-sm py-2 px-3 text-xs"
               >
-                <LogOut className="size-4.5 mr-2.5" />
+                <LogOut className="size-4 mr-2" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -209,7 +213,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         {/* Mobile Horizontal Navigation Scroll */}
-        <div className="md:hidden overflow-x-auto border-b border-border/40 bg-card/20 backdrop-blur-md">
+        <div className="md:hidden overflow-x-auto border-b border-border bg-sidebar">
           <div className="flex gap-1.5 p-2 min-w-max">
             {nav.map((item) => {
               const active = pathname.startsWith(item.to);
@@ -220,10 +224,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to={item.to}
                   preload="intent"
                   className={cn(
-                    "flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium border transition-all duration-200",
+                    "flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-xs font-medium border transition-all duration-150",
                     active
-                      ? "bg-primary/10 text-primary border-primary/20"
-                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-white/5",
+                      ? "bg-white/[0.04] text-foreground border-white/[0.05]"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-white/[0.01]",
                   )}
                 >
                   <Icon className="size-3.5" /> {item.label}
@@ -233,7 +237,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden bg-background">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

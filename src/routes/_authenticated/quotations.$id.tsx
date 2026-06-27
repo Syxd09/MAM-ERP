@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +18,9 @@ import { Plus, Trash2, ArrowLeft, Download, Save } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuotationPDF } from "@/lib/quotation-pdf";
 
-export const Route = createFileRoute("/_authenticated/quotations/new")({
-  head: () => ({ meta: [{ title: "New Quotation — MAM ERP" }] }),
-  validateSearch: (s: Record<string, unknown>): { lead?: string; customer?: string } => ({
-    lead: typeof s.lead === "string" ? s.lead : undefined,
-    customer: typeof s.customer === "string" ? s.customer : undefined,
-  }),
-  component: NewQuotationPage,
+export const Route = createFileRoute("/_authenticated/quotations/$id")({
+  head: () => ({ meta: [{ title: "Edit Quotation — MAM ERP" }] }),
+  component: EditQuotationPage,
 });
 
 interface Item {
@@ -35,45 +31,98 @@ interface Item {
   unit_price: number;
 }
 
-function NewQuotationPage() {
-  const navigate = useNavigate();
-  const search = Route.useSearch();
-  const [customerId, setCustomerId] = useState<string>("");
-  const [form, setForm] = useState({
-    customer_name: "",
-    customer_company: "",
-    customer_phone: "",
-    customer_email: "",
-    customer_gst: "",
-    customer_address: "",
-    discount_pct: 0,
-    gst_pct: 18,
-    valid_until: "",
-    notes: "",
-    terms: "",
-    // New fields
-    po_number: "",
-    po_date: "",
-    vehicle_no: "",
-    eway_no: "",
-    dc_no: "",
-    dc_date: "",
-    ship_to_name: "",
-    ship_to_company: "",
-    ship_to_address: "",
-    ship_to_gst: "",
-    same_as_billing: true,
-    copy_type: "original" as "original" | "duplicate" | "transporter",
-    bank_name: "BANK OF INDIA",
-    bank_acc_no: "",
-    bank_ifsc: "",
-    company_pan: "",
-    document_title: "TAX INVOICE",
-    pdf_format: "standard" as "standard" | "classic",
-    signatory_company: "For MAM Industries",
-    signatory_name: "Muthu",
-    print_seal: true,
+function EditQuotationPage() {
+  const { id } = Route.useParams();
+
+  const { data: quotation, isLoading: isQuotationLoading } = useQuery({
+    queryKey: ["quotation", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotations")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
   });
+
+  const { data: quotationItems, isLoading: isItemsLoading } = useQuery({
+    queryKey: ["quotation-items", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotation_items")
+        .select("*")
+        .eq("quotation_id", id)
+        .order("position");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (isQuotationLoading || isItemsLoading) {
+    return <div className="text-muted-foreground p-8 text-center animate-pulse">Loading quotation details…</div>;
+  }
+
+  if (!quotation) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <div className="text-destructive font-semibold">Quotation not found</div>
+        <Link to="/quotations" className="text-primary hover:underline inline-flex items-center gap-1">
+          <ArrowLeft className="size-4" /> Back to quotations
+        </Link>
+      </div>
+    );
+  }
+
+  return <EditQuotationForm quotation={quotation} initialItems={quotationItems || []} />;
+}
+
+function EditQuotationForm({ quotation, initialItems }: { quotation: any; initialItems: any[] }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [customerId, setCustomerId] = useState<string>(quotation.customer_id || "");
+  const [form, setForm] = useState({
+    customer_name: quotation.customer_name || "",
+    customer_company: quotation.customer_company || "",
+    customer_phone: quotation.customer_phone || "",
+    customer_email: quotation.customer_email || "",
+    customer_gst: quotation.customer_gst || "",
+    customer_address: quotation.customer_address || "",
+    discount_pct: Number(quotation.discount_pct || 0),
+    gst_pct: Number(quotation.gst_pct || 18),
+    valid_until: quotation.valid_until || "",
+    notes: quotation.notes || "",
+    terms: quotation.terms || "",
+    // Extra fields
+    po_number: quotation.po_number || "",
+    po_date: quotation.po_date || "",
+    vehicle_no: quotation.vehicle_no || "",
+    eway_no: quotation.eway_no || "",
+    dc_no: quotation.dc_no || "",
+    dc_date: quotation.dc_date || "",
+    ship_to_name: quotation.ship_to_name || "",
+    ship_to_company: quotation.ship_to_company || "",
+    ship_to_address: quotation.ship_to_address || "",
+    ship_to_gst: quotation.ship_to_gst || "",
+    same_as_billing: !quotation.ship_to_address || (
+      quotation.ship_to_name === quotation.customer_name &&
+      quotation.ship_to_company === quotation.customer_company &&
+      quotation.ship_to_address === quotation.customer_address &&
+      quotation.ship_to_gst === quotation.customer_gst
+    ),
+    copy_type: "original" as "original" | "duplicate" | "transporter",
+    bank_name: quotation.bank_name || "BANK OF INDIA",
+    bank_acc_no: quotation.bank_acc_no || "",
+    bank_ifsc: quotation.bank_ifsc || "",
+    company_pan: quotation.company_pan || "",
+    document_title: quotation.document_title || "TAX INVOICE",
+    pdf_format: (quotation.pdf_format || "standard") as "standard" | "classic",
+    signatory_company: quotation.signatory_company || "For MAM Industries",
+    signatory_name: quotation.signatory_name || "Muthu",
+    print_seal: !!quotation.print_seal,
+  });
+
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("none");
   const [templateName, setTemplateName] = useState<string>("");
 
@@ -187,9 +236,17 @@ function NewQuotationPage() {
     }
   };
 
-  const [items, setItems] = useState<Item[]>([
-    { description: "", hsn_code: "", quantity: 1, unit: "pcs", unit_price: 0 },
-  ]);
+  const [items, setItems] = useState<Item[]>(
+    initialItems.length > 0
+      ? initialItems.map((it) => ({
+          description: it.description || "",
+          hsn_code: it.hsn_code || "",
+          quantity: Number(it.quantity) || 0,
+          unit: it.unit || "pcs",
+          unit_price: Number(it.unit_price) || 0,
+        }))
+      : [{ description: "", hsn_code: "", quantity: 1, unit: "pcs", unit_price: 0 }]
+  );
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers-min"],
@@ -201,41 +258,8 @@ function NewQuotationPage() {
       ).data ?? [],
   });
 
-  // Pre-fill from lead
   useEffect(() => {
-    if (search.lead) {
-      supabase
-        .from("leads")
-        .select("*")
-        .eq("id", search.lead)
-        .single()
-        .then(({ data: l }) => {
-          if (!l) return;
-          setForm((f) => ({
-            ...f,
-            customer_name: l.name,
-            customer_company: l.company || "",
-            customer_phone: l.phone || "",
-            customer_email: l.email || "",
-            customer_gst: l.gst_number || "",
-            customer_address: l.address || "",
-          }));
-          if (l.requirement)
-            setItems([
-              {
-                description: l.requirement,
-                hsn_code: "",
-                quantity: 1,
-                unit: "pcs",
-                unit_price: Number(l.estimated_value) || 0,
-              },
-            ]);
-        });
-    }
-  }, [search.lead]);
-
-  useEffect(() => {
-    if (customerId) {
+    if (customerId && customerId !== quotation.customer_id) {
       const c = customers.find((x: any) => x.id === customerId);
       if (c)
         setForm((f) => ({
@@ -248,12 +272,12 @@ function NewQuotationPage() {
           customer_address: c.address || "",
         }));
     }
-  }, [customerId, customers]);
+  }, [customerId, customers, quotation.customer_id]);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce(
       (s, it) => s + (Number(it.quantity) || 0) * (Number(it.unit_price) || 0),
-      0,
+      0
     );
     const discount_amount = (subtotal * Number(form.discount_pct || 0)) / 100;
     const after = subtotal - discount_amount;
@@ -267,12 +291,10 @@ function NewQuotationPage() {
       if (!form.customer_name) throw new Error("Customer name is required");
       if (items.length === 0 || items.every((i) => !i.description))
         throw new Error("Add at least one line item");
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const insert = {
+
+      // Update payload
+      const updatePayload = {
         customer_id: customerId || null,
-        lead_id: search.lead || null,
         customer_name: form.customer_name,
         customer_company: form.customer_company,
         customer_phone: form.customer_phone,
@@ -288,9 +310,6 @@ function NewQuotationPage() {
         notes: form.notes,
         terms: form.terms,
         valid_until: form.valid_until || null,
-        status: "draft",
-        created_by: user?.id,
-        // New columns
         po_number: form.po_number || null,
         po_date: form.po_date || null,
         vehicle_no: form.vehicle_no || null,
@@ -310,17 +329,29 @@ function NewQuotationPage() {
         signatory_company: form.signatory_company || "For MAM Industries",
         signatory_name: form.signatory_name || "Muthu",
         print_seal: form.print_seal,
+        updated_at: new Date().toISOString(),
       };
+
       const { data: q, error } = await supabase
         .from("quotations")
-        .insert(insert as any)
+        .update(updatePayload as any)
+        .eq("id", quotation.id)
         .select()
         .single();
       if (error) throw error;
+
+      // Delete existing line items
+      const { error: delErr } = await supabase
+        .from("quotation_items")
+        .delete()
+        .eq("quotation_id", quotation.id);
+      if (delErr) throw delErr;
+
+      // Insert new line items
       const itemRows = items
         .filter((i) => i.description)
         .map((i, pos) => ({
-          quotation_id: q.id,
+          quotation_id: quotation.id,
           position: pos,
           description: i.description,
           hsn_code: i.hsn_code || null,
@@ -331,11 +362,17 @@ function NewQuotationPage() {
         }));
       const { error: itErr } = await supabase.from("quotation_items").insert(itemRows);
       if (itErr) throw itErr;
-      if (alsoDownload) generateQuotationPDF({ ...(q as any), items: itemRows, copy_type: form.copy_type } as any);
+
+      if (alsoDownload) {
+        generateQuotationPDF({ ...(q as any), items: itemRows, copy_type: form.copy_type } as any);
+      }
       return q;
     },
     onSuccess: () => {
-      toast.success("Quotation created");
+      toast.success("Quotation updated");
+      qc.invalidateQueries({ queryKey: ["quotations"] });
+      qc.invalidateQueries({ queryKey: ["quotation", quotation.id] });
+      qc.invalidateQueries({ queryKey: ["quotation-items", quotation.id] });
       navigate({ to: "/quotations" });
     },
     onError: (e: any) => toast.error(e.message),
@@ -350,7 +387,9 @@ function NewQuotationPage() {
         >
           <ArrowLeft className="size-3" /> Back
         </Link>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight mt-1">New Quotation</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight mt-1">
+          Edit Quotation <span className="text-muted-foreground font-mono text-lg font-normal">({quotation.quotation_number})</span>
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -873,7 +912,7 @@ function NewQuotationPage() {
           disabled={save.isPending}
           onClick={() => save.mutate(false)}
         >
-          <Save className="size-4 mr-1" /> Save
+          <Save className="size-4 mr-1" /> Save Changes
         </Button>
       </div>
     </div>

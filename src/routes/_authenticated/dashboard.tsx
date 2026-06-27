@@ -261,16 +261,16 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="flex items-end justify-between flex-wrap gap-4 pb-1 border-b border-white/5">
+      <div className="flex items-end justify-between flex-wrap gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground font-display">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
             Operations Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground mt-1.5">
+          <p className="text-xs text-muted-foreground mt-1">
             Monitor real-time revenue, quotations, and active production stage load.
           </p>
         </div>
-        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest bg-secondary/50 px-3 py-1 rounded-lg border border-white/5">
+        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider bg-card px-3 py-1 rounded-sm border border-border">
           {new Date().toLocaleString("en-IN", {
             dateStyle: "full",
             timeStyle: "short",
@@ -279,26 +279,26 @@ function Dashboard() {
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3.5">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
         {kpis.map((k, i) => (
           <motion.div
             key={k.label}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            className="glass-panel p-4.5 relative overflow-hidden group hover-lift border border-white/5 bg-card/15 hover:bg-card/25 transition-all rounded-xl"
+            transition={{ delay: i * 0.01 }}
+            className="bg-card p-4 relative overflow-hidden border border-border rounded-sm hover:border-primary/50 transition-colors shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div
-                className={`size-8 rounded-lg ${k.bgColor} ${k.color} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}
+                className={`size-8 rounded-sm ${k.bgColor} ${k.color} flex items-center justify-center`}
               >
-                <k.icon className="size-4.5" />
+                <k.icon className="size-4" />
               </div>
             </div>
-            <div className="mt-4 text-2xl font-bold font-display tracking-tight text-foreground">
+            <div className="mt-3 text-xl font-bold tracking-tight text-foreground">
               {isLoading ? "…" : k.value}
             </div>
-            <div className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1.5 font-semibold">
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1 font-bold">
               {k.label}
             </div>
           </motion.div>
@@ -307,17 +307,17 @@ function Dashboard() {
 
       {/* Primary Graphs Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="glass-panel p-5.5 lg:col-span-2 border border-white/5 bg-card/15 rounded-2xl relative overflow-hidden">
+        <div className="bg-card p-5 lg:col-span-2 border border-border rounded-sm relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
-                <TrendingUp className="size-4.5 text-success" /> Revenue Trend
+              <h2 className="font-bold text-sm flex items-center gap-2 text-foreground">
+                <TrendingUp className="size-4 text-success" /> Revenue Trend
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Quotes approved over the last 30 days
               </p>
             </div>
-            <div className="text-xs font-mono font-bold bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-lg">
+            <div className="text-xs font-mono font-bold bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-sm">
               {inr(stats?.trend.reduce((s, x) => s + x.revenue, 0) ?? 0)} total
             </div>
           </div>
@@ -326,13 +326,13 @@ function Dashboard() {
               <AreaChart data={stats?.trend ?? []}>
                 <defs>
                   <linearGradient id="revenueGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.35} />
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="rgba(255,255,255,0.03)"
+                  stroke="#1f2937"
                   vertical={false}
                 />
                 <XAxis
@@ -351,15 +351,14 @@ function Dashboard() {
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "rgba(10,12,22,0.9)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 12,
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 2,
                     fontSize: 11,
-                    backdropFilter: "blur(12px)",
                   }}
                   labelClassName="text-muted-foreground font-mono"
-                  formatter={(value: string | number | boolean) => [
-                    inr(Number(value)),
+                  formatter={(value: any) => [
+                    inr(Number(value || 0)),
                     "Approved Revenue",
                   ]}
                 />
@@ -368,7 +367,7 @@ function Dashboard() {
                   dataKey="revenue"
                   stroke="var(--primary)"
                   fill="url(#revenueGlow)"
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -376,10 +375,10 @@ function Dashboard() {
         </div>
 
         {/* Pie Distribution */}
-        <div className="glass-panel p-5.5 border border-white/5 bg-card/15 rounded-2xl flex flex-col justify-between">
+        <div className="bg-card p-5 border border-border rounded-sm flex flex-col justify-between shadow-sm">
           <div>
-            <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
-              <Factory className="size-4.5 text-primary" /> Active Job Stages
+            <h2 className="font-bold text-sm flex items-center gap-2 text-foreground">
+              <Factory className="size-4 text-primary" /> Active Job Stages
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">Active items currently in queue</p>
           </div>
@@ -413,11 +412,10 @@ function Dashboard() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "rgba(10,12,22,0.9)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 10,
+                      background: "var(--card)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 2,
                       fontSize: 11,
-                      backdropFilter: "blur(12px)",
                     }}
                   />
                 </PieChart>
@@ -429,7 +427,7 @@ function Dashboard() {
             {stats?.activeStageDist.map((s, i) => (
               <div
                 key={s.name}
-                className="flex items-center gap-2 text-[10px] bg-white/[0.02] p-1.5 rounded-lg border border-white/[0.03]"
+                className="flex items-center gap-2 text-[10px] bg-background p-1.5 rounded-sm border border-border"
               >
                 <span
                   className="size-2 rounded-full shrink-0"
@@ -444,11 +442,11 @@ function Dashboard() {
       </div>
 
       {/* Full-width stage load */}
-      <div className="glass-panel p-5.5 border border-white/5 bg-card/15 rounded-2xl">
+      <div className="bg-card p-5 border border-border rounded-sm shadow-sm">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
-              <Activity className="size-4.5 text-warning" /> Production Load by Stage
+            <h2 className="font-bold text-sm flex items-center gap-2 text-foreground">
+              <Activity className="size-4 text-warning" /> Production Load by Stage
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Current queue sizes from design to dispatch
@@ -456,9 +454,9 @@ function Dashboard() {
           </div>
           <Link
             to="/jobs"
-            className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 bg-primary/5 hover:bg-primary/10 border border-primary/10 px-3 py-1.5 rounded-xl transition-colors"
+            className="text-xs text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-sm transition-colors"
           >
-            Open Kanban Board <ArrowUpRight className="size-3.5" />
+            Open Production Board
           </Link>
         </div>
         <div className="h-72">
@@ -466,7 +464,7 @@ function Dashboard() {
             <BarChart data={stats?.stageLoad ?? []}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.03)"
+                stroke="#1f2937"
                 vertical={false}
               />
               <XAxis
@@ -488,14 +486,13 @@ function Dashboard() {
               />
               <Tooltip
                 contentStyle={{
-                  background: "rgba(10,12,22,0.9)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 12,
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 2,
                   fontSize: 11,
-                  backdropFilter: "blur(12px)",
                 }}
               />
-              <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="count" fill="var(--primary)" radius={[2, 2, 0, 0]}>
                 {stats?.stageLoad.map((_, i) => (
                   <Cell key={i} fill={CHART_HEX[i % CHART_HEX.length]} />
                 ))}
@@ -507,11 +504,11 @@ function Dashboard() {
 
       {/* Bottom Lists: Recent Jobs + Upcoming Deadlines */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="glass-panel p-5.5 lg:col-span-2 border border-white/5 bg-card/15 rounded-2xl">
+        <div className="bg-card p-5 lg:col-span-2 border border-border rounded-sm shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
-                <Factory className="size-4.5 text-primary" /> Recent Production Jobs
+              <h2 className="font-bold text-sm flex items-center gap-2 text-foreground">
+                <Factory className="size-4 text-primary" /> Recent Production Jobs
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Latest jobs queued in the production pipeline
@@ -524,13 +521,13 @@ function Dashboard() {
               Manage all →
             </Link>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {isLoading ? (
-              <div className="text-sm text-muted-foreground text-center py-8">
+              <div className="text-xs text-muted-foreground text-center py-8">
                 Loading production logs...
               </div>
             ) : (stats?.recentJobsList?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
+              <p className="text-xs text-muted-foreground text-center py-8">
                 No jobs in production.{" "}
                 <Link to="/jobs" className="text-primary font-semibold">
                   Queue first job →
@@ -540,14 +537,14 @@ function Dashboard() {
               stats?.recentJobsList.map((job: DashboardJob) => (
                 <div
                   key={job.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl bg-[#090b14]/50 hover:bg-white/[0.03] transition-all border border-white/[0.03] hover:border-white/[0.06]"
+                  className="flex items-center justify-between p-3 rounded-sm bg-background border border-border"
                 >
                   <div className="min-w-0 flex-1 mr-4">
-                    <div className="font-semibold text-sm text-foreground truncate">
+                    <div className="font-semibold text-xs text-foreground truncate">
                       {job.title}
                     </div>
                     <div className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="font-mono text-foreground bg-white/[0.04] px-1.5 py-0.5 rounded">
+                      <span className="font-mono text-foreground bg-muted border border-border px-1.5 py-0.5 rounded-none">
                         {job.job_number}
                       </span>
                       <span>·</span>
@@ -571,7 +568,7 @@ function Dashboard() {
                       </span>
                     )}
                     <span
-                      className={`text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-lg border font-bold ${STAGE_TONE[job.stage] || "border-border"}`}
+                      className={`text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-sm border font-bold ${STAGE_TONE[job.stage] || "border-border"}`}
                     >
                       {JOB_STAGE_LABELS[job.stage]}
                     </span>
@@ -582,31 +579,31 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="glass-panel p-5.5 border border-white/5 bg-card/15 rounded-2xl">
+        <div className="bg-card p-5 border border-border rounded-sm shadow-sm">
           <div className="mb-4">
-            <h2 className="font-display font-bold text-base flex items-center gap-2 text-foreground">
-              <Clock className="size-4.5 text-warning" /> Critical Deadlines
+            <h2 className="font-bold text-sm flex items-center gap-2 text-foreground">
+              <Clock className="size-4 text-warning" /> Critical Deadlines
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Production schedules needing close attention
             </p>
           </div>
           {isLoading ? (
-            <div className="text-sm text-muted-foreground text-center py-8">
+            <div className="text-xs text-muted-foreground text-center py-8">
               Loading schedules...
             </div>
           ) : (stats?.upcomingDeadlines?.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8 text-muted-foreground/75">
+            <p className="text-xs text-muted-foreground text-center py-8 text-muted-foreground/75">
               All active job deadlines are clear.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {stats?.upcomingDeadlines.map((job: DashboardJob) => {
                 const overdue = job.deadline && new Date(job.deadline) < new Date();
                 return (
                   <div
                     key={job.id}
-                    className="p-3.5 rounded-xl bg-[#090b14]/50 border border-white/[0.03] hover:border-white/[0.06] transition-colors"
+                    className="p-3 rounded-sm bg-background border border-border"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div
@@ -616,7 +613,7 @@ function Dashboard() {
                         {job.title}
                       </div>
                       <span
-                        className={`text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-lg border font-bold ${STAGE_TONE[job.stage] || "border-border"}`}
+                        className={`text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-sm border font-bold ${STAGE_TONE[job.stage] || "border-border"}`}
                       >
                         {JOB_STAGE_LABELS[job.stage]}
                       </span>
@@ -624,15 +621,15 @@ function Dashboard() {
                     <div className="text-[10px] text-muted-foreground truncate mt-1">
                       {job.customers?.company_name || "Direct Account"}
                     </div>
-                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/[0.04]">
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border">
                       <span className="text-[9px] font-mono text-muted-foreground">
                         {job.job_number}
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold border ${
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[9px] font-bold border ${
                           overdue
                             ? "bg-destructive/10 text-destructive border-destructive/20"
-                            : "bg-white/[0.02] text-muted-foreground border-white/[0.05]"
+                            : "bg-muted text-muted-foreground border-border"
                         }`}
                       >
                         {overdue ? (
