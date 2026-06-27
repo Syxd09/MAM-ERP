@@ -70,8 +70,8 @@ function NewQuotationPage() {
     company_pan: "",
     document_title: "TAX INVOICE",
     pdf_format: "standard" as "standard" | "classic",
-    signatory_company: "For QUIKO LASERS & CO",
-    signatory_name: "Muthu",
+    signatory_company: "For MAM Industries",
+    signatory_name: "Mari Muthu R",
     print_seal: true,
   });
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("none");
@@ -107,8 +107,8 @@ function NewQuotationPage() {
         bank_acc_no: t.bank_acc_no || "",
         bank_ifsc: t.bank_ifsc || "",
         company_pan: t.company_pan || "",
-        signatory_company: t.signatory_company || "For QUIKO LASERS & CO",
-        signatory_name: t.signatory_name || "Muthu",
+        signatory_company: t.signatory_company || "For MAM Industries",
+        signatory_name: t.signatory_name || "Mari Muthu R",
         print_seal: t.print_seal ?? true,
       }));
       if (itemsData && itemsData.length > 0) {
@@ -307,8 +307,8 @@ function NewQuotationPage() {
         company_pan: form.company_pan || null,
         document_title: form.document_title || null,
         pdf_format: form.pdf_format || "standard",
-        signatory_company: form.signatory_company || "For QUIKO LASERS & CO",
-        signatory_name: form.signatory_name || "Muthu",
+        signatory_company: form.signatory_company || "For MAM Industries",
+        signatory_name: form.signatory_name || "Mari Muthu R",
         print_seal: form.print_seal,
       };
       const { data: q, error } = await supabase
@@ -588,7 +588,7 @@ function NewQuotationPage() {
                 <Input
                   value={form.signatory_company}
                   onChange={(e) => setForm({ ...form, signatory_company: e.target.value })}
-                  placeholder="e.g. For QUIKO LASERS & CO"
+                  placeholder="e.g. For MAM Industries"
                 />
               </div>
               <div>
@@ -596,7 +596,7 @@ function NewQuotationPage() {
                 <Input
                   value={form.signatory_name}
                   onChange={(e) => setForm({ ...form, signatory_name: e.target.value })}
-                  placeholder="e.g. Muthu"
+                  placeholder="e.g. Mari Muthu R"
                 />
               </div>
               <div>
@@ -859,7 +859,7 @@ function NewQuotationPage() {
             rows={3}
             value={form.terms}
             onChange={(e) => setForm({ ...form, terms: e.target.value })}
-            placeholder="Leave blank for default QUIKO LASERS & CO terms"
+            placeholder="Leave blank for default MAM Industries terms"
           />
         </div>
       </div>

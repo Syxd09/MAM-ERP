@@ -118,8 +118,8 @@ function EditQuotationForm({ quotation, initialItems }: { quotation: any; initia
     company_pan: quotation.company_pan || "",
     document_title: quotation.document_title || "TAX INVOICE",
     pdf_format: (quotation.pdf_format || "standard") as "standard" | "classic",
-    signatory_company: quotation.signatory_company || "For QUIKO LASERS & CO",
-    signatory_name: quotation.signatory_name || "Muthu",
+    signatory_company: quotation.signatory_company || "For MAM Industries",
+    signatory_name: quotation.signatory_name || "Mari Muthu R",
     print_seal: !!quotation.print_seal,
   });
 
@@ -156,8 +156,8 @@ function EditQuotationForm({ quotation, initialItems }: { quotation: any; initia
         bank_acc_no: t.bank_acc_no || "",
         bank_ifsc: t.bank_ifsc || "",
         company_pan: t.company_pan || "",
-        signatory_company: t.signatory_company || "For QUIKO LASERS & CO",
-        signatory_name: t.signatory_name || "Muthu",
+        signatory_company: t.signatory_company || "For MAM Industries",
+        signatory_name: t.signatory_name || "Mari Muthu R",
         print_seal: t.print_seal ?? true,
       }));
       if (itemsData && itemsData.length > 0) {
@@ -627,7 +627,7 @@ function EditQuotationForm({ quotation, initialItems }: { quotation: any; initia
                 <Input
                   value={form.signatory_company}
                   onChange={(e) => setForm({ ...form, signatory_company: e.target.value })}
-                  placeholder="e.g. For QUIKO LASERS & CO"
+                  placeholder="e.g. For MAM Industries"
                 />
               </div>
               <div>
@@ -635,7 +635,7 @@ function EditQuotationForm({ quotation, initialItems }: { quotation: any; initia
                 <Input
                   value={form.signatory_name}
                   onChange={(e) => setForm({ ...form, signatory_name: e.target.value })}
-                  placeholder="e.g. Muthu"
+                  placeholder="e.g. Mari Muthu R"
                 />
               </div>
               <div>
