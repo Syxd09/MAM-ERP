@@ -141,16 +141,16 @@ export function generateQuotationPDF(q: QuotationPDFData) {
 
   // 2. Add Base64 Header Logo (Top-Left)
   try {
-    doc.addImage(LOGO_BASE64, 'PNG', 72.72, 55.08, 259.92, 77.04);
+    doc.addImage(LOGO_BASE64, 'PNG', 50.52, 55.08, 259.92, 77.04);
   } catch (e) {
     console.error("Failed to add base64 header logo", e);
     // Draw placeholder in case of loading error
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text("MAM INDUSTRIES", 72.72, 85);
+    doc.text("MAM INDUSTRIES", 50.52, 85);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text("Laser Cutting · Fabrication · Bending · Welding", 72.72, 98);
+    doc.text("Laser Cutting · Fabrication · Bending · Welding", 50.52, 98);
   }
 
   // Add Seller Header Details (Top-Right, beside the logo)
@@ -442,8 +442,8 @@ export function generateClassicPDF(q: QuotationPDFData) {
   // 1. Add Base64 Logo First (Top-Left)
   // Drawn first so that grid borders can be drawn over it, preventing gaps.
   try {
-    // Shift to x = 52.50 to align with the centered page content
-    doc.addImage(LOGO_BASE64, 'PNG', 52.50, 56.50, 332.64, 95.00);
+    // Shift to x = 40.00 to align with the left page content border
+    doc.addImage(LOGO_BASE64, 'PNG', 40.00, 56.50, 320.00, 95.00);
   } catch (e) {
     console.error("Failed to add base64 header logo in classic PDF", e);
   }
