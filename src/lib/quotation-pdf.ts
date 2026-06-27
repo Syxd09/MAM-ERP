@@ -157,18 +157,18 @@ export function generateQuotationPDF(q: QuotationPDFData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(0, 0, 0);
-  doc.text("NO 113 7th MILE NAIDU LAYOUT,", 556.32, 60, { align: "right" });
-  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 556.32, 70, { align: "right" });
-  doc.text("BANGALORE, Karnataka 560062, India", 556.32, 80, { align: "right" });
+  doc.text("NO 113 7th MILE NAIDU LAYOUT,", 556.32, 68, { align: "right" });
+  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 556.32, 78, { align: "right" });
+  doc.text("BANGALORE, Karnataka 560062, India", 556.32, 88, { align: "right" });
 
   doc.setFont("helvetica", "bold");
-  doc.text("GSTIN: 29CTCPM1852L2ZC", 556.32, 90, { align: "right" });
+  doc.text("GSTIN: 29CTCPM1852L2ZC", 556.32, 98, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.text("Email: mamindustries19@gmail.com | Web: www.mamindustries.in", 556.32, 100, { align: "right" });
+  doc.text("Email: mamindustries19@gmail.com | Web: www.mamindustries.in", 556.32, 108, { align: "right" });
 
   const ownerName = q.signatory_name || "Mari Muthu R";
-  doc.text(`Mobile: 6381163159 | Owner: ${ownerName}`, 556.32, 110, { align: "right" });
+  doc.text(`Mobile: 6381163159 | Owner: ${ownerName}`, 556.32, 118, { align: "right" });
 
   // 3. Draw Grid Lines
   // Outer border box
@@ -452,18 +452,18 @@ export function generateClassicPDF(q: QuotationPDFData) {
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
-  doc.text("NO 113 7th MILE NAIDU LAYOUT,", 572.00, 70, { align: "right" });
-  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 572.00, 79, { align: "right" });
-  doc.text("BANGALORE, Karnataka 560062, India", 572.00, 88, { align: "right" });
+  doc.text("NO 113 7th MILE NAIDU LAYOUT,", 572.00, 81, { align: "right" });
+  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 572.00, 90, { align: "right" });
+  doc.text("BANGALORE, Karnataka 560062, India", 572.00, 99, { align: "right" });
 
   doc.setFont("helvetica", "bold");
-  doc.text("GSTIN: 29CTCPM1852L2ZC", 572.00, 98, { align: "right" });
+  doc.text("GSTIN: 29CTCPM1852L2ZC", 572.00, 109, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.text("Email: mamindustries19@gmail.com | Web: www.mamindustries.in", 572.00, 107, { align: "right" });
+  doc.text("Email: mamindustries19@gmail.com | Web: www.mamindustries.in", 572.00, 118, { align: "right" });
 
   const ownerNameClassic = q.signatory_name || "Mari Muthu R";
-  doc.text(`Mobile: 6381163159 | Owner: ${ownerNameClassic}`, 572.00, 116, { align: "right" });
+  doc.text(`Mobile: 6381163159 | Owner: ${ownerNameClassic}`, 572.00, 127, { align: "right" });
 
   // 2. Draw Outer Frame and Grid Lines (On top of the logo background!)
   doc.setDrawColor(0, 0, 0);
