@@ -147,11 +147,32 @@ export function generateQuotationPDF(q: QuotationPDFData) {
     // Draw placeholder in case of loading error
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text("MAM INDUSTRIES", 72.72, 85);
+    doc.text("QUIKO LASERS & CO", 72.72, 85);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.text("Laser Cutting · Fabrication · Bending · Welding", 72.72, 98);
   }
+
+  // Add Seller Header Details (Top-Right, beside the logo)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text("QUIKO LASERS & CO", 556.32, 58, { align: "right" });
+  
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.text("#23, C/A, J.C INDUSTRIAL LAYOUT, 3RD MAIN, 1ST STAGE,", 556.32, 68, { align: "right" });
+  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 556.32, 77, { align: "right" });
+  doc.text("BANGALORE, Karnataka 560062, India", 556.32, 86, { align: "right" });
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("GSTIN: 29AAAFQ7191C1Z6", 556.32, 96, { align: "right" });
+  
+  doc.setFont("helvetica", "normal");
+  doc.text("Email: quikolasers@gmail.com | Web: www.quikolasers.com", 556.32, 105, { align: "right" });
+  
+  const ownerName = q.signatory_name || "Muthu";
+  doc.text(`Mobile: 8095544429 | Owner: ${ownerName}`, 556.32, 114, { align: "right" });
   
   // 3. Draw Grid Lines
   // Outer border box
@@ -379,7 +400,7 @@ export function generateQuotationPDF(q: QuotationPDFData) {
   
   // For MAM Industries & Authorised Signatory
   doc.setFont("helvetica", "bold");
-  const sigCompany = q.signatory_company || "For MAM INDUSTRIES";
+  const sigCompany = q.signatory_company || "For QUIKO LASERS & CO";
   doc.text(sigCompany, 462, 590);
   
   if (q.print_seal) {
@@ -404,7 +425,7 @@ export function generateQuotationPDF(q: QuotationPDFData) {
   doc.text(`Company's PAN: ${q.company_pan || ""}`, 98, 620);
   doc.text("Note:Please make cheques in favour of", 98, 632);
   doc.setFont("helvetica", "bold");
-  doc.text('"MAM INDUSTRIES"', 98, 644);
+  doc.text('"QUIKO LASERS & CO"', 98, 644);
   
   // Bank details block
   doc.setFont("helvetica", "bold");
@@ -430,6 +451,27 @@ export function generateClassicPDF(q: QuotationPDFData) {
   } catch (e) {
     console.error("Failed to add base64 header logo in classic PDF", e);
   }
+
+  // Add Seller Header Details (Top-Right, beside the logo)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text("QUIKO LASERS & CO", 572.00, 60, { align: "right" });
+  
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.text("#23, C/A, J.C INDUSTRIAL LAYOUT, 3RD MAIN, 1ST STAGE,", 572.00, 70, { align: "right" });
+  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 572.00, 79, { align: "right" });
+  doc.text("BANGALORE, Karnataka 560062, India", 572.00, 88, { align: "right" });
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("GSTIN: 29AAAFQ7191C1Z6", 572.00, 98, { align: "right" });
+  
+  doc.setFont("helvetica", "normal");
+  doc.text("Email: quikolasers@gmail.com | Web: www.quikolasers.com", 572.00, 107, { align: "right" });
+  
+  const ownerNameClassic = q.signatory_name || "Muthu";
+  doc.text(`Mobile: 8095544429 | Owner: ${ownerNameClassic}`, 572.00, 116, { align: "right" });
 
   // 2. Draw Outer Frame and Grid Lines (On top of the logo background!)
   doc.setDrawColor(0, 0, 0);
@@ -612,7 +654,7 @@ export function generateClassicPDF(q: QuotationPDFData) {
   // 11. Signatory Block (Center of page bottom)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  const sigCompany = q.signatory_company || "For MAM Industries";
+  const sigCompany = q.signatory_company || "For QUIKO LASERS & CO";
   doc.text(sigCompany, 306.00, 594.48, { align: "center" });
 
   if (q.print_seal) {
