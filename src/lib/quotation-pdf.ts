@@ -413,7 +413,7 @@ export function generateQuotationPDF(q: QuotationPDFData) {
 
   // Received By Block (x = 50.52 to 93.36)
   doc.setFont("helvetica", "bold");
-  doc.text("RECIVED", 71.94, 622, { align: "center" });
+  doc.text("RECEIVED", 71.94, 622, { align: "center" });
   doc.text("BY", 71.94, 634, { align: "center" });
 
   // Company PAN and note
@@ -430,6 +430,34 @@ export function generateQuotationPDF(q: QuotationPDFData) {
   doc.text(`BANK NAME: ${q.bank_name || "BANK OF INDIA"}`, 318, 630);
   doc.text(`A/C NO : ${q.bank_acc_no || ""}`, 318, 640);
   doc.text(`BRANCH & IFSC: ${q.bank_ifsc || ""}`, 318, 650);
+
+  // 11. Notes & Terms Section (Outside the main border box at the bottom)
+  let footerY = 675;
+
+  if (q.notes) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Notes:", 55, footerY);
+    doc.setFont("helvetica", "normal");
+    const notesLines = doc.splitTextToSize(q.notes, 500);
+    doc.text(notesLines, 55, footerY + 11);
+    footerY += 11 + (notesLines.length * 10) + 8;
+  }
+
+  // Print terms (either custom or default)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Terms & Conditions:", 55, footerY);
+  doc.setFont("helvetica", "normal");
+  const termsVal = q.terms || [
+    "Delivery: 25 to 30 days",
+    "Quotation valid : 20 Days",
+    "Payment Terms: 50% Advance 50% remaining delivery"
+  ].join("\n");
+  const termsLines = doc.splitTextToSize(termsVal, 500);
+  doc.text(termsLines, 55, footerY + 11);
 
   // Save PDF
   doc.save(`${q.quotation_number}.pdf`);
@@ -660,6 +688,17 @@ export function generateClassicPDF(q: QuotationPDFData) {
   doc.setFont("helvetica", "normal");
   const sigName = q.signatory_name || "Muthu";
   doc.text(sigName, 306.00, 615.0, { align: "center" });
+
+  // 12. Notes Section (Outside the main border box at the bottom)
+  if (q.notes) {
+    const notesY = 635;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("Notes:", 47.00, notesY);
+    doc.setFont("helvetica", "normal");
+    const notesLines = doc.splitTextToSize(q.notes, 518);
+    doc.text(notesLines, 47.00, notesY + 11);
+  }
 
   // Save PDF
   doc.save(`${q.quotation_number}.pdf`);
