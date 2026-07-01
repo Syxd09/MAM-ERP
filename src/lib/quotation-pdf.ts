@@ -476,6 +476,23 @@ export function generateClassicPDF(q: QuotationPDFData) {
     console.error("Failed to add base64 header logo in classic PDF", e);
   }
 
+  // Add Seller Header Details (Top-Right, beside the logo in classic)
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text("NO 113 7th MILE NAIDU LAYOUT,", 572.00, 68, { align: "right" });
+  doc.text("YELACHENAHALLI, KANAKAPURA ROAD,", 572.00, 78, { align: "right" });
+  doc.text("BANGALORE, Karnataka 560062, India", 572.00, 88, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.text("GSTIN: 29CTCPM1852L2ZC", 572.00, 98, { align: "right" });
+
+  doc.setFont("helvetica", "normal");
+  doc.text("Email: mamindustries19@gmail.com | Web: www.mamindustries.in", 572.00, 108, { align: "right" });
+
+  const ownerName = q.signatory_name || "Mari Muthu R";
+  doc.text(`Mobile: 6381163159 | Owner: ${ownerName}`, 572.00, 118, { align: "right" });
+
   // 2. Draw Outer Frame and Grid Lines (On top of the logo background!)
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.8);
